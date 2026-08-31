@@ -65,9 +65,9 @@ impl PnpmStoreDetector {
     }
 
     pub fn is_global_store_path_with(path: &Path, roots: &[PathBuf]) -> bool {
-        let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+        let canonical = linkd_core::paths::normalize_path(path);
         roots.iter().any(|store| {
-            let store = store.canonicalize().unwrap_or_else(|_| store.clone());
+            let store = linkd_core::paths::normalize_path(store);
             canonical.starts_with(store)
         })
     }

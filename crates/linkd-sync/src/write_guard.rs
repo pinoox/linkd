@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use linkd_core::paths::normalize_path;
 use linkd_core::{LinkdError, LinkdResult};
 
 /// Paths that sync is allowed to write into.
@@ -13,11 +14,12 @@ pub struct WriteAllowlist {
 
 impl WriteAllowlist {
     pub fn new(consumer_root: PathBuf, forbidden_roots: Vec<PathBuf>) -> Self {
-        let allowed_roots = vec![consumer_root.join("node_modules")];
+        let consumer = normalize_path(&consumer_root);
+        let allowed_roots = vec![consumer.join("node_modules")];
         Self {
-            consumer_root,
+            consumer_root: consumer,
             allowed_roots,
-            forbidden_roots,
+            forbidden_roots: forbidden_roots.into_iter().map(|p| normalize_path(&p)).collect(),
         }
     }
 
@@ -30,21 +32,23 @@ impl WriteAllowlist {
         subdirs: &[&str],
         forbidden_roots: Vec<PathBuf>,
     ) -> Self {
-        let consumer = consumer_root
-            .canonicalize()
-            .unwrap_or_else(|_| consumer_root.to_path_buf());
+        let consumer = normalize_path(consumer_root);
         let allowed_roots = subdirs.iter().map(|s| consumer.join(s)).collect();
         Self {
             consumer_root: consumer,
             allowed_roots,
             forbidden_roots: forbidden_roots
                 .into_iter()
-                .map(|p| p.canonicalize().unwrap_or(p))
+                .map(|p| normalize_path(&p))
                 .collect(),
         }
     }
 
     pub fn from_allowed_roots(allowed_roots: Vec<PathBuf>, forbidden_roots: Vec<PathBuf>) -> Self {
+        let allowed_roots = allowed_roots
+            .into_iter()
+            .map(|p| normalize_path(&p))
+            .collect::<Vec<_>>();
         let consumer_root = allowed_roots
             .first()
             .and_then(|p| p.parent())
@@ -55,7 +59,7 @@ impl WriteAllowlist {
             allowed_roots,
             forbidden_roots: forbidden_roots
                 .into_iter()
-                .map(|p| p.canonicalize().unwrap_or(p))
+                .map(|p| normalize_path(&p))
                 .collect(),
         }
     }
@@ -79,8 +83,9 @@ impl WriteAllowlist {
             return Ok(());
         }
 
+        let canonical = normalize_path(path);
         for forbidden in &self.forbidden_roots {
-            if normalize_path(path).starts_with(normalize_path(forbidden)) {
+            if canonical.starts_with(normalize_path(forbidden)) {
                 return Err(LinkdError::PnpmGlobalStoreForbidden(
                     path.display().to_string(),
                 ));
@@ -99,26 +104,6 @@ impl WriteAllowlist {
             path.display(),
         )))
     }
-}
-
-fn normalize_path(path: &Path) -> PathBuf {
-    let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
-    strip_verbatim_prefix(canonical)
-}
-
-#[cfg(windows)]
-fn strip_verbatim_prefix(path: PathBuf) -> PathBuf {
-    let s = path.to_string_lossy();
-    if let Some(stripped) = s.strip_prefix(r"\\?\") {
-        PathBuf::from(stripped)
-    } else {
-        path
-    }
-}
-
-#[cfg(not(windows))]
-fn strip_verbatim_prefix(path: PathBuf) -> PathBuf {
-    path
 }
 
 pub struct WriteGuard<'a> {
