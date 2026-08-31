@@ -18,13 +18,9 @@ Single `rename(tmp, target)` when target absent; otherwise three-step swap.
 
 ### Windows
 
-When `rename(tmp, target)` fails with target exists:
+When `rename(tmp, target)` fails because the target directory already exists, use **in-place content replacement**: keep the target path present, clear its contents, copy from tmp, then remove tmp. This preserves the ADR invariant that the canonical package path is never absent (critical for bundlers on NTFS).
 
-1. `rename(target → target.old-<ts>)`
-2. `rename(tmp → target)`
-3. Async delete `target.old-*`
-
-**Invariant:** the canonical target path is never absent — either old or new content is always reachable at the path.
+For fresh installs (target absent), a single `rename(tmp, target)` is used.
 
 ## Consequences
 

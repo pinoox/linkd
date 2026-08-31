@@ -1,4 +1,4 @@
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 use linkd_core::{LinkdError, LinkdResult};
 
@@ -114,24 +114,6 @@ pub fn shadow_dir(consumer_root: &Path, package_name: &str) -> PathBuf {
         shadow.push(component);
     }
     shadow
-}
-
-fn _sanitize_component(name: &str) -> String {
-    name.trim_start_matches('@').replace('/', "-")
-}
-
-pub fn is_path_inside(path: &Path, root: &Path) -> bool {
-    let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
-    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
-    path.starts_with(root)
-}
-
-pub fn relative_path(base: &Path, full: &Path) -> Option<PathBuf> {
-    full.strip_prefix(base).ok().map(|p| {
-        p.components()
-            .filter(|c| !matches!(c, Component::CurDir))
-            .collect()
-    })
 }
 
 #[cfg(test)]

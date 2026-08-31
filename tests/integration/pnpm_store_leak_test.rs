@@ -30,7 +30,7 @@ fn never_writes_directly_to_global_store() {
 
     assert!(PnpmStoreDetector::is_global_store_path_with(
         &pkg_in_store,
-        &[global_store.clone()],
+        std::slice::from_ref(&global_store),
     ));
 
     let allowlist = WriteAllowlist::from_consumer(&consumer, vec![global_store.clone()]);
@@ -80,7 +80,7 @@ fn sync_engine_rejects_global_store_target() {
     fs::create_dir_all(&target).unwrap();
 
     let consumer = tmp.path().join("app");
-    fs::create_dir_all(&consumer.join("node_modules")).unwrap();
+    fs::create_dir_all(consumer.join("node_modules")).unwrap();
 
     let allowlist = WriteAllowlist::from_consumer(&consumer, vec![store.clone()]);
     let engine = SyncEngine::new(allowlist);

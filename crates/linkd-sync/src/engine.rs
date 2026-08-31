@@ -144,7 +144,7 @@ fn replace_dir_in_place(src: &Path, dst: &Path) -> LinkdResult<()> {
 
     for entry in fs::read_dir(dst).map_err(|e| LinkdError::io(dst, e))? {
         let entry = entry.map_err(|e| LinkdError::io(dst, e))?;
-        remove_path_all(&entry.path()).map_err(|e| LinkdError::io(&entry.path(), e))?;
+        remove_path_all(&entry.path()).map_err(|e| LinkdError::io(entry.path(), e))?;
     }
 
     for entry in fs::read_dir(src).map_err(|e| LinkdError::io(src, e))? {

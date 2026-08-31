@@ -42,13 +42,6 @@ pub fn copy_file_with_strategy(
     }
 }
 
-pub fn effective_strategy(requested: SyncStrategy) -> SyncStrategy {
-    match requested {
-        SyncStrategy::Reflink => SyncStrategy::Reflink,
-        other => other,
-    }
-}
-
 pub fn mirror_tree(
     source_root: &Path,
     dest_root: &Path,

@@ -7,7 +7,7 @@ pub fn pm_install_hint(consumer_root: &std::path::Path) -> Option<String> {
     system.refresh_all();
 
     let names = ["npm", "pnpm", "yarn", "bun"];
-    for (_pid, process) in system.processes() {
+    for process in system.processes().values() {
         let exe = process.exe()?.to_string_lossy().to_lowercase();
         if names.iter().any(|n| exe.contains(n)) {
             let cwd = process.cwd()?.to_string_lossy().to_string();

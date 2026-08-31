@@ -27,8 +27,7 @@ pub async fn run() -> anyhow::Result<()> {
             LinkSyncStatus::Error => "✗ error",
         };
         println!(
-            "  {} {} → {} ({:?}) {}",
-            "🔗",
+            "  🔗 {} → {} ({:?}) {}",
             link.package_name,
             link.consumer_root.display(),
             link.strategy,

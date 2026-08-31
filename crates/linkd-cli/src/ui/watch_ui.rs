@@ -48,7 +48,7 @@ fn run_loop(terminal: &mut DefaultTerminal) -> io::Result<()> {
                     };
                     lines.push(Line::from(vec![
                         Span::raw(" 🔗 "),
-                        Span::styled(format!("{}", link.package_name), style),
+                        Span::styled(link.package_name.clone(), style),
                         Span::raw(format!(
                             " → {} ({:?}) ",
                             link.consumer_root.display(),

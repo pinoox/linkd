@@ -67,11 +67,9 @@ impl Registry {
     }
 
     pub fn remove_by_package(links: &mut Vec<LinkEntry>, name: &str) -> Option<LinkEntry> {
-        if let Some(idx) = links.iter().position(|l| l.package_name == name) {
-            Some(links.remove(idx))
-        } else {
-            None
-        }
+        links.iter()
+            .position(|l| l.package_name == name)
+            .map(|idx| links.remove(idx))
     }
 
     pub fn update_sync(

@@ -11,19 +11,14 @@ pub enum Ecosystem {
     Npm,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SyncStrategy {
+    #[default]
     Reflink,
     Copy,
     Hardlink,
     Symlink,
-}
-
-impl Default for SyncStrategy {
-    fn default() -> Self {
-        Self::Reflink
-    }
 }
 
 impl SyncStrategy {
@@ -40,17 +35,12 @@ impl SyncStrategy {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum IsolationMode {
+    #[default]
     ProjectLocal,
     Shadow,
-}
-
-impl Default for IsolationMode {
-    fn default() -> Self {
-        Self::ProjectLocal
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,19 +88,14 @@ pub struct LinkEntry {
     pub file_count: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LinkSyncStatus {
     Synced,
     Syncing,
+    #[default]
     Pending,
     Error,
-}
-
-impl Default for LinkSyncStatus {
-    fn default() -> Self {
-        Self::Pending
-    }
 }
 
 pub fn hash_files(source_root: &Path, relative_files: &[PathBuf]) -> String {

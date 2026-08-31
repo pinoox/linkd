@@ -1,12 +1,54 @@
-/target
+# Rust Cargo build artifacts
+/target/
 **/*.rs.bk
-.DS_Store
+*.pdb
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Local SQLite databases & cache
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.log
+
+# Local machine Neuromesh state
+.playwright/
+.playwright-cli/
+
+# Node & Frontend dependencies
+node_modules/
+dist/
+out/
+package-lock.json
+
+# IDE & Editor files
+.idea/
 .cursor/
 .vscode/
-.idea/
-.project/
-.settings/
-.classpath/
-.factorypath/
-.agent/
-.env
+.agents/
+.codex/
+.kilo/
+.trae/
+.minimax/
+.mcp.json
+*.swp
+*.swo
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Walker unit-test scratch
+desktop.ini
+
+# Extension packages
+*.vsix

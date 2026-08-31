@@ -6,7 +6,7 @@ use crate::human::print_result;
 pub async fn run(target: &str) -> anyhow::Result<()> {
     if let Ok(client) = IpcClient::new() {
         if client.ping().await.unwrap_or(false) {
-            print_result(client.remove_link(target).await.map_err(|e| e))?;
+            print_result(client.remove_link(target).await)?;
             println!("✓ Unlinked {target}");
             return Ok(());
         }

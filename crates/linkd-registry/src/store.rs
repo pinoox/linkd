@@ -36,6 +36,7 @@ impl RegistryStore {
             .read(true)
             .write(true)
             .create(true)
+            .truncate(false)
             .open(&self.path)
             .map_err(|e| LinkdError::io(&self.path, e))?;
 
