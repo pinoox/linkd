@@ -27,12 +27,12 @@
         <span>linkd</span>
       </a>
       <ul class="nav-links">
-        <li><a href="docs.html" class="nav-link" style="color: var(--accent-cyan)">Documentation</a></li>
         <li><a href="#why" class="nav-link">Why linkd</a></li>
         <li><a href="#ecosystems" class="nav-link">Ecosystems</a></li>
         <li><a href="#monitor" class="nav-link">TUI Monitor</a></li>
-        <li><a href="#cli" class="nav-link">CLI Cheatsheet</a></li>
-        <li><a href="#architecture" class="nav-link">Architecture</a></li>
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#docs" class="nav-link">Docs Hub</a></li>
+        <li><a href="docs.html" class="nav-link" style="color: var(--accent-cyan)">Full Docs →</a></li>
       </ul>
       <div class="nav-actions">
         <a href="https://github.com/linkd-dev/linkd" target="_blank" rel="noopener" class="btn btn-outline">
@@ -216,7 +216,7 @@ cd ./apps/web-app && pnpm install</code></pre>
   </section>
 
   <!-- Features Grid -->
-  <section class="section">
+  <section class="section" id="features">
     <div class="container">
       <div class="section-tag">Engineering Highlights</div>
       <h2 class="section-title">Built with Rust for speed & resilience.</h2>
@@ -257,127 +257,66 @@ cd ./apps/web-app && pnpm install</code></pre>
     </div>
   </section>
 
-  <!-- CLI Command Reference -->
-  <section class="section" id="cli">
+  <!-- Documentation Hub & Guides Section -->
+  <section class="section" id="docs">
     <div class="container">
-      <div class="section-tag">Cheatsheet</div>
-      <h2 class="section-title">Complete CLI Command Reference</h2>
-      <p class="section-desc">Search and explore all commands, options, and workflows.</p>
+      <div class="section-tag">Learn & Explore</div>
+      <h2 class="section-title">Comprehensive Guides & Reference</h2>
+      <p class="section-desc">Everything you need to master local-dev package reconciliation across every language stack.</p>
 
-      <input type="text" id="cli-filter" class="cli-search" placeholder="🔍 Filter commands (e.g. link, monitor, stop, doctor)...">
+      <div class="features-grid" style="margin-bottom: 32px">
+        <a href="docs.html#quickstart" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">🚀</div>
+          <h4>Getting Started & Quickstart</h4>
+          <p>Step-by-step tutorial on linking your first library, verifying reconciliation, and cleaning up dev links in under 3 minutes.</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">Read tutorial →</span>
+        </a>
 
-      <table class="cli-table">
-        <thead>
-          <tr>
-            <th>Command</th>
-            <th>Arguments / Flags</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>linkd link</code></td>
-            <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
-            <td>Registers and syncs a local package into a consumer project with auto-daemon start.</td>
-          </tr>
-          <tr>
-            <td><code>linkd unlink</code></td>
-            <td><code>&lt;target|name|source&gt;</code></td>
-            <td>Removes an active link and safely cleans up marker files.</td>
-          </tr>
-          <tr>
-            <td><code>linkd list</code></td>
-            <td><em>none</em></td>
-            <td>Displays a table of all registered links, health status, and target paths.</td>
-          </tr>
-          <tr>
-            <td><code>linkd monitor</code></td>
-            <td><code>[--start]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
-            <td>Launches full-screen interactive Ratatui TUI dashboard.</td>
-          </tr>
-          <tr>
-            <td><code>linkd start</code></td>
-            <td><em>none</em></td>
-            <td>Starts the background linkd daemon (detached cross-platform process).</td>
-          </tr>
-          <tr>
-            <td><code>linkd stop</code></td>
-            <td><code>[--force]</code></td>
-            <td>Gracefully shuts down the running background daemon.</td>
-          </tr>
-          <tr>
-            <td><code>linkd watch</code></td>
-            <td><em>none</em></td>
-            <td>Runs the daemon in foreground with live terminal output.</td>
-          </tr>
-          <tr>
-            <td><code>linkd status</code></td>
-            <td><code>[--json]</code></td>
-            <td>Returns a one-shot snapshot of daemon PID and active link metrics.</td>
-          </tr>
-          <tr>
-            <td><code>linkd doctor</code></td>
-            <td><code>[--explain &lt;topic&gt;]</code></td>
-            <td>Runs comprehensive environment diagnostics (pnpm-store, composer, python, go, cargo, jvm).</td>
-          </tr>
-          <tr>
-            <td><code>linkd logs</code></td>
-            <td><code>[-f|--follow]</code></td>
-            <td>Tails structured daemon log output.</td>
-          </tr>
-          <tr>
-            <td><code>linkd wizard</code></td>
-            <td><em>none</em></td>
-            <td>Runs full-screen interactive 5-step guided setup wizard.</td>
-          </tr>
-          <tr>
-            <td><code>linkd init</code></td>
-            <td><em>none</em></td>
-            <td>Runs quick prompt-based setup wizard in terminal.</td>
-          </tr>
-          <tr>
-            <td><code>linkd completions</code></td>
-            <td><code>&lt;bash|zsh|fish|powershell|elvish&gt;</code></td>
-            <td>Generates shell completion scripts.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+        <a href="docs.html#reconciler" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">🔄</div>
+          <h4>Reconciliation Engine Architecture</h4>
+          <p>Deep-dive into Kubernetes-style continuous state management, atomic swaps, and lockfile completion markers.</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">View architecture →</span>
+        </a>
 
-  <!-- Architecture Diagram -->
-  <section class="section" id="architecture">
-    <div class="container">
-      <div class="section-tag">Under The Hood</div>
-      <h2 class="section-title">Reconciliation Loop Architecture</h2>
-      <p class="section-desc">How linkd continuously keeps your state in sync without eating CPU or corrupting stores.</p>
+        <a href="docs.html#eco-javascript" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">🌐</div>
+          <h4>7 Ecosystem In-Depth Guides</h4>
+          <p>Detailed setup guides for JavaScript (npm/pnpm/yarn/bun), PHP Composer, Python uv, Go Modules, Rust Cargo, and JVM.</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">Explore ecosystems →</span>
+        </a>
 
-      <div class="eco-code-block" style="font-size: 0.88rem; line-height: 1.6; color: var(--fg-default)">
-        <pre>
-┌────────────────────────────────────────────────────────────────────────┐
-│                        ~/.linkd/registry.json                          │
-│                          (Global State Store)                          │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                         ┌──────────▼──────────┐
-                         │    linkd daemon     │
-                         │ (Background Engine) │
-                         └──────────┬──────────┘
-                                    │
-       ┌────────────────────────────┼────────────────────────────┐
-       │ (File Watchers)            │ (Reconciliation Engine)    │ (IPC Server)
-       ▼                            ▼                            ▼
-  Source Changes             Reinstall Event               Live Dashboard
-  - Debounced sync           - Lockfile markers            - Subscriptions
-  - Cache filter             - Atomic directory swap       - Pause/Resume
-       │                            │
-       └────────────────────────────┴────────────────────────────┐
-                                                                 ▼
-                                                  Target Project (.linkd-marker)
-                                                  - node_modules/&lt;pkg&gt;
-                                                  - vendor/&lt;pkg&gt;
-                                                  - .venv/Lib/site-packages/&lt;pkg&gt;
-        </pre>
+        <a href="docs.html#tui-wizards" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">🧙</div>
+          <h4>Interactive Wizards & TUI Guide</h4>
+          <p>Learn how to use <code>linkd wizard</code> and <code>linkd init</code> for zero-effort guided linking, plus full hotkey controls for <code>linkd monitor</code>.</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">Read wizard guide →</span>
+        </a>
+
+        <a href="docs.html#daemon-lifecycle" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">⚙️</div>
+          <h4>Daemon Lifecycle & System Services</h4>
+          <p>Configure background daemon lifecycle, autostart on system boot via systemd user units (Linux) or launchd plists (macOS).</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">Setup services →</span>
+        </a>
+
+        <a href="docs.html#cli-reference" class="feature-card" style="text-decoration: none; color: inherit">
+          <div class="feature-icon">📖</div>
+          <h4>Complete CLI Command Reference</h4>
+          <p>Searchable reference of every linkd subcommand, flag, environment variable, and diagnostic tool in v0.1.0.</p>
+          <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: 600; margin-top: 12px; display: inline-block">Search commands →</span>
+        </a>
+      </div>
+
+      <!-- Featured Big Docs Callout -->
+      <div style="background: linear-gradient(135deg, rgba(47, 129, 247, 0.15), rgba(188, 140, 255, 0.1)); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; gap: 24px">
+        <div>
+          <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px">Ready to dive deeper?</h3>
+          <p style="color: var(--fg-muted); margin: 0; font-size: 1.05rem">Read our comprehensive documentation covering all architecture decisions, troubleshooting, and polyglot guides.</p>
+        </div>
+        <a href="docs.html" class="btn btn-primary" style="padding: 12px 24px; font-size: 1rem; flex-shrink: 0">
+          Open Documentation (v0.1.0) →
+        </a>
       </div>
     </div>
   </section>

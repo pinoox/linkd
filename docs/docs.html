@@ -335,6 +335,33 @@
         <li><strong>Reconciliation Loop:</strong> When source files change, changes are debounced and synced. When lockfiles change (indicating an install occurred), the target directory is atomically restored.</li>
       </ol>
 
+      <div class="code-wrapper" style="margin: 24px 0">
+        <div class="code-header"><span>Reconciler Architecture Diagram</span></div>
+        <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│                        ~/.linkd/registry.json                          │
+│                          (Global State Store)                          │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                         ┌──────────▼──────────┐
+                         │    linkd daemon     │
+                         │ (Background Engine) │
+                         └──────────┬──────────┘
+                                    │
+       ┌────────────────────────────┼────────────────────────────┐
+       │ (File Watchers)            │ (Reconciliation Engine)    │ (IPC Server)
+       ▼                            ▼                            ▼
+  Source Changes             Reinstall Event               Live Dashboard
+  - Debounced sync           - Lockfile markers            - Subscriptions
+  - Cache filter             - Atomic directory swap       - Pause/Resume
+       │                            │
+       └────────────────────────────┴────────────────────────────┐
+                                                                 ▼
+                                                  Target Project (.linkd-marker)
+                                                  - node_modules/&lt;pkg&gt;
+                                                  - vendor/&lt;pkg&gt;
+                                                  - .venv/Lib/site-packages/&lt;pkg&gt;</code></pre>
+      </div>
+
       <h3 id="store-isolation">🛡️ pnpm Global Store Safety Gate</h3>
       <p>
         In <code>pnpm</code>, packages in <code>node_modules</code> are hardlinks to a global content-addressable store (<code>~/.pnpm-store</code>). Writing directly into <code>node_modules</code> would contaminate the global cache for all projects on your computer.
@@ -573,6 +600,10 @@ WantedBy=default.target</code></pre>
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
       <h2 id="cli-reference">📖 CLI Command Reference</h2>
+      <p>Search and explore all commands, options, and operational subcommands in linkd v0.1.0:</p>
+
+      <input type="text" id="cli-filter" class="cli-search" placeholder="🔍 Filter CLI commands (e.g. link, monitor, stop, doctor)..." style="margin-bottom: 20px">
+
       <table class="cli-table">
         <thead>
           <tr>
