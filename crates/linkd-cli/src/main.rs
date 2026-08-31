@@ -2,10 +2,12 @@ mod commands;
 mod human;
 mod logging;
 mod ui;
+mod welcome;
 
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use clap_complete::{generate, Shell};
 use linkd_core::Ecosystem;
+use welcome::print_welcome_guide;
 
 #[derive(Parser)]
 #[command(
@@ -134,7 +136,8 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let Some(command) = cli.command else {
-        anyhow::bail!("a subcommand is required; try `linkd --help`");
+        print_welcome_guide();
+        return Ok(());
     };
 
     match command {
