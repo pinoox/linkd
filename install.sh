@@ -5,29 +5,46 @@ REPO="pinoox/linkd"
 INSTALL_DIR="${LINKD_INSTALL_DIR:-$HOME/.linkd/bin}"
 SYSTEM_DIR="/usr/local/bin"
 
-echo "⚡ Installing linkd..."
+# Styling colors
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+GRAY='\033[0;90m'
+NC='\033[0m'
 
-# Detect OS and Arch
+echo -e ""
+echo -e "${CYAN}    ██╗     ██╗███╗   ██╗██╗  ██╗██████╗ ${NC}"
+echo -e "${CYAN}    ██║     ██║████╗  ██║██║ ██╔╝██╔══██╗${NC}"
+echo -e "${CYAN}    ██║     ██║██╔██╗ ██║█████╔╝ ██║  ██║${NC}"
+echo -e "${CYAN}    ██║     ██║██║╚██╗██║██╔═██╗ ██║  ██║${NC}"
+echo -e "${CYAN}    ███████╗██║██║ ╚████║██║  ██╗██████╔╝${NC}"
+echo -e "${CYAN}    ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═════╝ ${NC}"
+echo -e "${GRAY}    ⚡ Continuous Local-Dev Package Link Daemon${NC}"
+echo -e ""
+
+# Step 1: Detect OS & Arch
+echo -e "  ${CYAN}[1/4]${NC} 🔍 Detecting system architecture..."
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 
 case "$OS" in
   linux*)
     case "$ARCH" in
-      x86_64|amd64) TARGET="x86_64-unknown-linux-musl" ;;
+      x86_64|amd64) TARGET="x86_64-unknown-linux-gnu" ;;
       aarch64|arm64) TARGET="aarch64-unknown-linux-gnu" ;;
-      *) echo "❌ Unsupported Linux architecture: $ARCH"; exit 1 ;;
+      *) echo -e "        ${RED}❌ Unsupported Linux architecture: $ARCH${NC}"; exit 1 ;;
     esac
     ;;
   darwin*)
     case "$ARCH" in
       x86_64|amd64) TARGET="x86_64-apple-darwin" ;;
       arm64|aarch64) TARGET="aarch64-apple-darwin" ;;
-      *) echo "❌ Unsupported macOS architecture: $ARCH"; exit 1 ;;
+      *) echo -e "        ${RED}❌ Unsupported macOS architecture: $ARCH${NC}"; exit 1 ;;
     esac
     ;;
   *)
-    echo "❌ Unsupported OS: $OS. On Windows, please use: irm https://raw.githubusercontent.com/$REPO/master/install.ps1 | iex"
+    echo -e "        ${RED}❌ Unsupported OS: $OS. On Windows, please use: irm https://raw.githubusercontent.com/$REPO/master/install.ps1 | iex${NC}"
     exit 1
     ;;
 esac
@@ -45,26 +62,31 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "⬇️  Downloading prebuilt binary (${TARGET})..."
+# Step 2: Download & Extract
+echo -e "  ${CYAN}[2/4]${NC} ⬇️  Downloading prebuilt binary (${TARGET})..."
 if curl -fSL --progress-bar "$DOWNLOAD_URL" -o "$TMP_DIR/linkd.tar.gz" 2>/dev/null; then
   tar -xzf "$TMP_DIR/linkd.tar.gz" -C "$TMP_DIR"
   BINARY="$TMP_DIR/linkd"
 else
-  echo "⚠️  Could not download prebuilt release from GitHub."
+  echo -e "        ${YELLOW}⚠️  Could not download prebuilt release from GitHub.${NC}"
   if command -v cargo >/dev/null 2>&1; then
-    echo "🔨 Building from source using cargo..."
+    echo -e "        ${YELLOW}🔨 Building from source using Cargo...${NC}"
     cargo install linkd-cli --locked || cargo install --path crates/linkd-cli --locked
-    echo "✓ linkd installed via Cargo!"
-    exit 0
+    BINARY="$(command -v linkd || echo '')"
   else
-    echo "❌ Failed to download prebuilt binary and cargo was not found."
+    echo -e "        ${RED}❌ Failed to download binary and Cargo was not found.${NC}"
     exit 1
   fi
 fi
 
-chmod +x "$BINARY"
+if [ -n "$BINARY" ] && [ -f "$BINARY" ]; then
+  chmod +x "$BINARY"
+fi
 
-# Try installing to /usr/local/bin if writable, else ~/.linkd/bin
+# Step 3: Install & Automatic PATH Setup
+echo -e "  ${CYAN}[3/4]${NC} ⚙️  Configuring binary location & PATH..."
+TARGET_BIN=""
+
 if [ -w "$SYSTEM_DIR" ]; then
   mv "$BINARY" "$SYSTEM_DIR/linkd"
   TARGET_BIN="$SYSTEM_DIR/linkd"
@@ -76,13 +98,42 @@ else
   mv "$BINARY" "$INSTALL_DIR/linkd"
   TARGET_BIN="$INSTALL_DIR/linkd"
 
-  # Advise user to add to PATH if not already present
-  if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo ""
-    echo "ℹ️  Add linkd to your PATH by adding this line to your ~/.bashrc or ~/.zshrc:"
-    echo "   export PATH=\"\$HOME/.linkd/bin:\$PATH\""
+  # Automatic PATH injection into shell profiles
+  PATH_LINE="export PATH=\"\$HOME/.linkd/bin:\$PATH\""
+  
+  if [ -f "$HOME/.bashrc" ] && ! grep -q ".linkd/bin" "$HOME/.bashrc"; then
+    echo -e "\n# linkd binary path\n$PATH_LINE" >> "$HOME/.bashrc"
+  fi
+  if [ -f "$HOME/.zshrc" ] && ! grep -q ".linkd/bin" "$HOME/.zshrc"; then
+    echo -e "\n# linkd binary path\n$PATH_LINE" >> "$HOME/.zshrc"
+  fi
+  if [ -d "$HOME/.config/fish" ] && [ -f "$HOME/.config/fish/config.fish" ]; then
+    if ! grep -q ".linkd/bin" "$HOME/.config/fish/config.fish"; then
+      echo -e "\n# linkd binary path\nset -gx PATH \$HOME/.linkd/bin \$PATH" >> "$HOME/.config/fish/config.fish"
+    fi
   fi
 fi
 
-echo "✨ Successfully installed linkd to: $TARGET_BIN"
-echo "🚀 Try running: linkd --help  or  linkd wizard"
+# Step 4: Verification
+echo -e "  ${CYAN}[4/4]${NC} 🔍 Verifying installation..."
+VERSION_STR="v0.1.0"
+if [ -x "$TARGET_BIN" ]; then
+  VERSION_STR="$("$TARGET_BIN" -v 2>/dev/null || echo "v0.1.0")"
+fi
+
+echo -e ""
+echo -e "${GREEN}  ┌────────────────────────────────────────────────────────────┐${NC}"
+echo -e "${GREEN}  │  ✨ linkd was successfully installed and configured!       │${NC}"
+echo -e "${GREEN}  ├────────────────────────────────────────────────────────────┤${NC}"
+echo -e "${GREEN}  │${NC}  • Version  : ${VERSION_STR}"
+echo -e "${GREEN}  │${NC}  • Binary   : ${TARGET_BIN}"
+echo -e "${GREEN}  │${NC}  • PATH     : Automatically configured in shell profile"
+echo -e "${GREEN}  ├────────────────────────────────────────────────────────────┤${NC}"
+echo -e "${GREEN}  │${NC}  ${CYAN}🚀 Quick Start Commands:${NC}                                  ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd wizard          # 5-step guided interactive setup${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd link <src> <app># Instant local package linking  ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd monitor         # Real-time TUI dashboard        ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd version         # Display version & ecosystems   ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd doctor          # Check environment health       ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  └────────────────────────────────────────────────────────────┘${NC}"
+echo -e ""

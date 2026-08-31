@@ -10,10 +10,15 @@ use linkd_core::Ecosystem;
 #[derive(Parser)]
 #[command(
     name = "linkd",
-    version,
-    about = "Local-dev link daemon for npm/pnpm/composer"
+    version = env!("CARGO_PKG_VERSION"),
+    about = "Continuous local-dev link daemon for multi-ecosystem monorepos",
+    disable_version_flag = true
 )]
 struct Cli {
+    /// Print version information (-v, -V, --version)
+    #[arg(short = 'v', short_alias = 'V', long = "version", action = clap::ArgAction::Version)]
+    version: (),
+
     #[arg(long, hide = true, global = true)]
     daemon_internal: bool,
 
@@ -109,6 +114,12 @@ enum Commands {
         #[arg(value_enum)]
         shell: Shell,
     },
+    /// Print version information
+    Version {
+        /// Output in JSON format
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 #[tokio::main]
@@ -160,6 +171,23 @@ async fn main() -> anyhow::Result<()> {
         Commands::Monitor { start } => commands::monitor::run(start).await,
         Commands::Init => commands::init::run().await,
         Commands::Wizard => commands::wizard::run().await,
+        Commands::Version { json } => {
+            if json {
+                let info = serde_json::json!({
+                    "name": "linkd",
+                    "version": env!("CARGO_PKG_VERSION"),
+                    "target_os": std::env::consts::OS,
+                    "target_arch": std::env::consts::ARCH,
+                    "ecosystems": ["npm", "pnpm", "yarn", "bun", "composer", "python", "go", "cargo", "jvm", "custom"]
+                });
+                println!("{}", serde_json::to_string_pretty(&info)?);
+            } else {
+                println!("linkd v{}", env!("CARGO_PKG_VERSION"));
+                println!("Continuous local-dev link daemon for multi-ecosystem monorepos");
+                println!("Supported ecosystems: JS/TS, PHP Composer, Python, Go, Rust Cargo, JVM, Custom");
+            }
+            Ok(())
+        }
         Commands::Completions { shell } => {
             generate(shell, &mut Cli::command(), "linkd", &mut std::io::stdout());
             Ok(())
