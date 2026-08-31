@@ -137,6 +137,7 @@ fn remove_path_all(path: &Path) -> std::io::Result<()> {
     }
 }
 
+#[cfg(windows)]
 fn replace_dir_in_place(src: &Path, dst: &Path) -> LinkdResult<()> {
     fs::create_dir_all(dst).map_err(|e| LinkdError::io(dst, e))?;
 
@@ -160,6 +161,7 @@ fn replace_dir_in_place(src: &Path, dst: &Path) -> LinkdResult<()> {
     Ok(())
 }
 
+#[cfg(windows)]
 fn copy_dir_all(from: &Path, to: &Path) -> std::io::Result<()> {
     fs::create_dir_all(to)?;
     for entry in fs::read_dir(from)? {
