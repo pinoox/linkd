@@ -365,6 +365,7 @@ cargo run -p linkd-cli -- monitor
 
 ---
 
-## 📄 License
+## 📄 Changelog & License
 
-MIT © [linkd contributors](LICENSE)
+- See [CHANGELOG.md](CHANGELOG.md) for detailed release notes and migration guides.
+- Open source under the [MIT License](LICENSE) © linkd contributors.
