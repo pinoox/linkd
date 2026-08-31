@@ -19,7 +19,10 @@ impl WriteAllowlist {
         Self {
             consumer_root: consumer,
             allowed_roots,
-            forbidden_roots: forbidden_roots.into_iter().map(|p| normalize_path(&p)).collect(),
+            forbidden_roots: forbidden_roots
+                .into_iter()
+                .map(|p| normalize_path(&p))
+                .collect(),
         }
     }
 
