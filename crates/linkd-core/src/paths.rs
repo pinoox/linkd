@@ -14,9 +14,7 @@ pub fn linkd_home() -> PathBuf {
 
     ProjectDirs::from(APP_QUALIFIER, APP_ORG, APP_NAME)
         .map(|d| d.data_dir().to_path_buf())
-        .unwrap_or_else(|| {
-            dirs_fallback_home().join(".linkd")
-        })
+        .unwrap_or_else(|| dirs_fallback_home().join(".linkd"))
 }
 
 fn dirs_fallback_home() -> PathBuf {
@@ -55,6 +53,14 @@ pub fn pack_cache_dir() -> PathBuf {
     linkd_home().join("pack-cache")
 }
 
+pub fn config_path() -> PathBuf {
+    linkd_home().join("config.json")
+}
+
+pub fn daemon_pid_path() -> PathBuf {
+    linkd_home().join("daemon.pid")
+}
+
 pub fn ensure_home() -> std::io::Result<()> {
     let home = linkd_home();
     std::fs::create_dir_all(&home)?;
@@ -70,7 +76,57 @@ pub fn is_ci() -> bool {
 }
 
 pub fn normalize_path(path: &Path) -> PathBuf {
-    path.canonicalize().unwrap_or_else(|_| path.to_path_buf())
+    let abs = if path.is_absolute() {
+        path.to_path_buf()
+    } else if let Ok(cwd) = std::env::current_dir() {
+        cwd.join(path)
+    } else {
+        path.to_path_buf()
+    };
+
+    let canonical = abs.canonicalize().unwrap_or_else(|_| {
+        let mut curr = abs.clone();
+        let mut rel_components = Vec::new();
+        while !curr.exists() {
+            if let Some(name) = curr.file_name() {
+                rel_components.push(name.to_os_string());
+                if let Some(parent) = curr.parent() {
+                    curr = parent.to_path_buf();
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        if let Ok(mut base) = curr.canonicalize() {
+            for comp in rel_components.into_iter().rev() {
+                base.push(comp);
+            }
+            base
+        } else {
+            abs
+        }
+    });
+
+    clean_unc_prefix(canonical)
+}
+
+#[cfg(windows)]
+fn clean_unc_prefix(path: PathBuf) -> PathBuf {
+    let s = path.to_string_lossy();
+    if let Some(stripped) = s.strip_prefix(r"\\?\UNC\") {
+        PathBuf::from(format!(r"\\{}", stripped))
+    } else if let Some(stripped) = s.strip_prefix(r"\\?\") {
+        PathBuf::from(stripped)
+    } else {
+        path
+    }
+}
+
+#[cfg(not(windows))]
+fn clean_unc_prefix(path: PathBuf) -> PathBuf {
+    path
 }
 
 #[cfg(unix)]

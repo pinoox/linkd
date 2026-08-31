@@ -5,10 +5,29 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Ecosystem {
+    #[default]
     Npm,
+    Composer,
+    Custom,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum LinkMode {
+    #[default]
+    PackageManager,
+    CustomPath,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolvedSyncTarget {
+    pub logical_target: PathBuf,
+    pub sync_target: PathBuf,
+    pub isolation_mode: IsolationMode,
+    pub forbidden_roots: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -67,7 +86,9 @@ impl LinkMarker {
             return Ok(None);
         }
         let data = std::fs::read_to_string(path)?;
-        Ok(Some(serde_json::from_str(&data).map_err(std::io::Error::other)?))
+        Ok(Some(
+            serde_json::from_str(&data).map_err(std::io::Error::other)?,
+        ))
     }
 }
 
@@ -78,6 +99,12 @@ pub struct LinkEntry {
     pub source_path: PathBuf,
     pub consumer_root: PathBuf,
     pub ecosystem: Ecosystem,
+    #[serde(default)]
+    pub link_mode: LinkMode,
+    #[serde(default)]
+    pub custom_target: Option<PathBuf>,
+    #[serde(default)]
+    pub detected_pm: Option<String>,
     pub strategy: SyncStrategy,
     pub isolation_mode: IsolationMode,
     pub sync_target: PathBuf,

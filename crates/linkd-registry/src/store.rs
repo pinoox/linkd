@@ -45,14 +45,19 @@ impl RegistryStore {
 
     pub fn load(&self) -> LinkdResult<RegistryFile> {
         let lock = self.open_locked()?;
-        let _guard = lock.read().map_err(|e| LinkdError::Registry(e.to_string()))?;
-        let contents = std::fs::read_to_string(&self.path).map_err(|e| LinkdError::io(&self.path, e))?;
+        let _guard = lock
+            .read()
+            .map_err(|e| LinkdError::Registry(e.to_string()))?;
+        let contents =
+            std::fs::read_to_string(&self.path).map_err(|e| LinkdError::io(&self.path, e))?;
 
         if contents.trim().is_empty() {
             return Ok(RegistryFile::default());
         }
 
-        serde_json::from_str(&contents).map_err(|e| LinkdError::Registry(e.to_string()))
+        let registry: RegistryFile =
+            serde_json::from_str(&contents).map_err(|e| LinkdError::Registry(e.to_string()))?;
+        Ok(registry.migrate())
     }
 
     pub fn save(&self, registry: &RegistryFile) -> LinkdResult<()> {
@@ -64,13 +69,24 @@ impl RegistryStore {
         }
 
         let mut lock = self.open_locked()?;
-        let mut guard = lock.write().map_err(|e| LinkdError::Registry(e.to_string()))?;
+        let mut guard = lock
+            .write()
+            .map_err(|e| LinkdError::Registry(e.to_string()))?;
 
-        let json = serde_json::to_string_pretty(registry).map_err(|e| LinkdError::Registry(e.to_string()))?;
-        guard.set_len(0).map_err(|e| LinkdError::io(&self.path, e))?;
-        guard.seek(std::io::SeekFrom::Start(0)).map_err(|e| LinkdError::io(&self.path, e))?;
-        guard.write_all(json.as_bytes()).map_err(|e| LinkdError::io(&self.path, e))?;
-        guard.sync_all().map_err(|e| LinkdError::io(&self.path, e))?;
+        let json = serde_json::to_string_pretty(registry)
+            .map_err(|e| LinkdError::Registry(e.to_string()))?;
+        guard
+            .set_len(0)
+            .map_err(|e| LinkdError::io(&self.path, e))?;
+        guard
+            .seek(std::io::SeekFrom::Start(0))
+            .map_err(|e| LinkdError::io(&self.path, e))?;
+        guard
+            .write_all(json.as_bytes())
+            .map_err(|e| LinkdError::io(&self.path, e))?;
+        guard
+            .sync_all()
+            .map_err(|e| LinkdError::io(&self.path, e))?;
         Ok(())
     }
 
@@ -104,7 +120,11 @@ impl RegistryStore {
         self.with_mut(|reg| Ok(Registry::remove_by_package(&mut reg.links, package_name)))
     }
 
-    pub fn update_link(&self, id: Uuid, update: impl FnOnce(&mut linkd_core::LinkEntry)) -> LinkdResult<()> {
+    pub fn update_link(
+        &self,
+        id: Uuid,
+        update: impl FnOnce(&mut linkd_core::LinkEntry),
+    ) -> LinkdResult<()> {
         self.with_mut(|reg| {
             let entry = Registry::find_by_id_mut(&mut reg.links, id)
                 .ok_or_else(|| LinkdError::PackageNotFound(id.to_string()))?;
@@ -117,6 +137,7 @@ impl RegistryStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::NewLinkParams;
     use linkd_core::{IsolationMode, SyncStrategy};
     use tempfile::TempDir;
 
@@ -126,14 +147,18 @@ mod tests {
         let path = tmp.path().join("registry.json");
         let store = RegistryStore::new(path);
 
-        let entry = Registry::new_link(
-            "@test/lib".into(),
-            tmp.path().join("src"),
-            tmp.path().join("app"),
-            tmp.path().join("app/node_modules/@test/lib"),
-            SyncStrategy::Copy,
-            IsolationMode::ProjectLocal,
-        );
+        let entry = Registry::new_link(NewLinkParams {
+            package_name: "@test/lib".into(),
+            source_path: tmp.path().join("src"),
+            consumer_root: tmp.path().join("app"),
+            sync_target: tmp.path().join("app/node_modules/@test/lib"),
+            ecosystem: linkd_core::Ecosystem::Npm,
+            link_mode: linkd_core::LinkMode::PackageManager,
+            custom_target: None,
+            detected_pm: None,
+            strategy: SyncStrategy::Copy,
+            isolation_mode: IsolationMode::ProjectLocal,
+        });
 
         store.add_link(entry.clone()).unwrap();
         let loaded = store.load().unwrap();

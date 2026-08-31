@@ -5,30 +5,59 @@ use linkd_core::{LinkdError, LinkdResult};
 /// Paths that sync is allowed to write into.
 #[derive(Debug, Clone)]
 pub struct WriteAllowlist {
+    #[allow(dead_code)]
     consumer_root: PathBuf,
+    allowed_roots: Vec<PathBuf>,
     forbidden_roots: Vec<PathBuf>,
 }
 
 impl WriteAllowlist {
     pub fn new(consumer_root: PathBuf, forbidden_roots: Vec<PathBuf>) -> Self {
+        let allowed_roots = vec![consumer_root.join("node_modules")];
         Self {
             consumer_root,
+            allowed_roots,
             forbidden_roots,
         }
     }
 
     pub fn from_consumer(consumer_root: &Path, forbidden_roots: Vec<PathBuf>) -> Self {
-        Self::new(
-            consumer_root.canonicalize().unwrap_or_else(|_| consumer_root.to_path_buf()),
-            forbidden_roots
+        Self::from_consumer_subdirs(consumer_root, &["node_modules"], forbidden_roots)
+    }
+
+    pub fn from_consumer_subdirs(
+        consumer_root: &Path,
+        subdirs: &[&str],
+        forbidden_roots: Vec<PathBuf>,
+    ) -> Self {
+        let consumer = consumer_root
+            .canonicalize()
+            .unwrap_or_else(|_| consumer_root.to_path_buf());
+        let allowed_roots = subdirs.iter().map(|s| consumer.join(s)).collect();
+        Self {
+            consumer_root: consumer,
+            allowed_roots,
+            forbidden_roots: forbidden_roots
                 .into_iter()
                 .map(|p| p.canonicalize().unwrap_or(p))
                 .collect(),
-        )
+        }
     }
 
-    fn node_modules_root(&self) -> PathBuf {
-        self.consumer_root.join("node_modules")
+    pub fn from_allowed_roots(allowed_roots: Vec<PathBuf>, forbidden_roots: Vec<PathBuf>) -> Self {
+        let consumer_root = allowed_roots
+            .first()
+            .and_then(|p| p.parent())
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."));
+        Self {
+            consumer_root,
+            allowed_roots,
+            forbidden_roots: forbidden_roots
+                .into_iter()
+                .map(|p| p.canonicalize().unwrap_or(p))
+                .collect(),
+        }
     }
 
     pub fn is_allowed(&self, path: &Path) -> bool {
@@ -40,8 +69,9 @@ impl WriteAllowlist {
             }
         }
 
-        let nm = normalize_path(&self.node_modules_root());
-        canonical.starts_with(&nm)
+        self.allowed_roots
+            .iter()
+            .any(|root| canonical.starts_with(normalize_path(root)))
     }
 
     pub fn assert_writable(&self, path: &Path) -> LinkdResult<()> {
@@ -57,18 +87,22 @@ impl WriteAllowlist {
             }
         }
 
+        let allowed = self
+            .allowed_roots
+            .iter()
+            .map(|p| normalize_path(p).display().to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+
         Err(LinkdError::WriteBlocked(format!(
-            "path {} is outside allowed write region under {}",
+            "path {} is outside allowed write region ({allowed})",
             path.display(),
-            normalize_path(&self.node_modules_root()).display()
         )))
     }
 }
 
 fn normalize_path(path: &Path) -> PathBuf {
-    let canonical = path
-        .canonicalize()
-        .unwrap_or_else(|_| path.to_path_buf());
+    let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
     strip_verbatim_prefix(canonical)
 }
 
@@ -148,5 +182,18 @@ mod tests {
 
         let allowlist = WriteAllowlist::from_consumer(&consumer, vec![]);
         assert!(allowlist.assert_writable(&shadow.join("index.js")).is_ok());
+    }
+
+    #[test]
+    fn allows_vendor_path() {
+        let tmp = TempDir::new().unwrap();
+        let consumer = tmp.path().join("app");
+        let vendor_pkg = consumer.join("vendor").join("acme").join("pkg");
+        std::fs::create_dir_all(&vendor_pkg).unwrap();
+
+        let allowlist = WriteAllowlist::from_consumer_subdirs(&consumer, &["vendor"], vec![]);
+        assert!(allowlist
+            .assert_writable(&vendor_pkg.join("src.php"))
+            .is_ok());
     }
 }

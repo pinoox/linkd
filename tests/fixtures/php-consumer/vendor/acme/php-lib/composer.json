@@ -1,0 +1,10 @@
+{
+    "name": "acme/php-lib",
+    "description": "Test PHP library fixture",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Acme\\": "src/"
+        }
+    }
+}

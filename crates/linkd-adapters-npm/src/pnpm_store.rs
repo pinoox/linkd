@@ -3,20 +3,12 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::{Mutex, OnceLock};
 
-use linkd_core::{IsolationMode, LinkdError, LinkdResult};
+use linkd_core::{IsolationMode, LinkdError, LinkdResult, ResolvedSyncTarget};
 use linkd_sync::{shadow_dir, WriteAllowlist};
 
 use crate::target_resolve::{resolve_node_modules_target, shadow_target_path};
 
 static STORE_CACHE: OnceLock<Mutex<Option<PathBuf>>> = OnceLock::new();
-
-#[derive(Debug, Clone)]
-pub struct ResolvedSyncTarget {
-    pub logical_target: PathBuf,
-    pub sync_target: PathBuf,
-    pub isolation_mode: IsolationMode,
-    pub forbidden_roots: Vec<PathBuf>,
-}
 
 pub struct PnpmStoreDetector;
 
@@ -52,10 +44,7 @@ impl PnpmStoreDetector {
             return Some(p.clone());
         }
 
-        let output = Command::new("pnpm")
-            .args(["store", "path"])
-            .output()
-            .ok()?;
+        let output = Command::new("pnpm").args(["store", "path"]).output().ok()?;
 
         if !output.status.success() {
             return None;
@@ -83,10 +72,7 @@ impl PnpmStoreDetector {
         })
     }
 
-    pub fn resolve(
-        consumer_root: &Path,
-        package_name: &str,
-    ) -> LinkdResult<ResolvedSyncTarget> {
+    pub fn resolve(consumer_root: &Path, package_name: &str) -> LinkdResult<ResolvedSyncTarget> {
         let logical = resolve_node_modules_target(consumer_root, package_name);
         let forbidden = Self::global_store_paths();
 
@@ -145,7 +131,8 @@ impl PnpmStoreDetector {
         std::os::unix::fs::symlink(shadow, logical).map_err(|e| LinkdError::io(logical, e))?;
 
         #[cfg(windows)]
-        std::os::windows::fs::symlink_dir(shadow, logical).map_err(|e| LinkdError::io(logical, e))?;
+        std::os::windows::fs::symlink_dir(shadow, logical)
+            .map_err(|e| LinkdError::io(logical, e))?;
 
         Ok(())
     }

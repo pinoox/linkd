@@ -6,6 +6,8 @@ license.workspace = true
 publish = false
 
 [dev-dependencies]
+linkd-adapters = { workspace = true }
+linkd-adapters-composer = { workspace = true }
 linkd-adapters-npm = { workspace = true }
 linkd-core = { workspace = true }
 linkd-daemon = { workspace = true }
@@ -25,3 +27,31 @@ path = "atomic_swap_under_load.rs"
 [[test]]
 name = "reinstall_simulation"
 path = "reinstall_simulation.rs"
+
+[[test]]
+name = "file_deletion_sync"
+path = "file_deletion_sync.rs"
+
+[[test]]
+name = "composer_reinstall_simulation"
+path = "composer_reinstall_simulation.rs"
+
+[[test]]
+name = "composer_autoload_hint"
+path = "composer_autoload_hint.rs"
+
+[[test]]
+name = "custom_path_sync"
+path = "custom_path_sync.rs"
+
+[[test]]
+name = "watch_loop_guard"
+path = "watch_loop_guard.rs"
+
+[[test]]
+name = "daemon_lifecycle"
+path = "daemon_lifecycle.rs"
+
+[[test]]
+name = "monorepo_sync"
+path = "monorepo_sync.rs"

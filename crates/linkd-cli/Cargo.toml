@@ -14,6 +14,7 @@ clap = { workspace = true }
 clap_complete = { workspace = true }
 crossterm = { workspace = true }
 inquire = { workspace = true }
+linkd-adapters = { workspace = true }
 linkd-adapters-npm = { workspace = true }
 linkd-core = { workspace = true }
 linkd-daemon = { workspace = true }

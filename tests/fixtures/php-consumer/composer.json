@@ -1,0 +1,11 @@
+{
+    "name": "acme/php-consumer",
+    "require": {
+        "acme/php-lib": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}

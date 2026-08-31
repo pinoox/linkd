@@ -1,7 +1,14 @@
-use inquire::{Confirm, Text};
+use inquire::{Confirm, Select, Text};
+use linkd_core::Ecosystem;
 
 pub async fn run() -> anyhow::Result<()> {
-    println!("linkd init — first-time setup\n");
+    println!("linkd init — quick setup\n");
+
+    let link_type = Select::new(
+        "Link type:",
+        vec!["npm package", "composer package", "custom path"],
+    )
+    .prompt()?;
 
     let source = Text::new("Source package directory:")
         .with_default("./packages/my-lib")
@@ -11,9 +18,19 @@ pub async fn run() -> anyhow::Result<()> {
         .with_default("../my-app")
         .prompt()?;
 
-    let consumer_path = std::path::PathBuf::from(&consumer);
-    let pm = linkd_adapters_npm::detect_package_manager(&consumer_path);
-    println!("✓ Detected package manager: {pm:?}");
+    let (target, ecosystem) = if link_type == "custom path" {
+        let target = Text::new("Sync target path (inside consumer):")
+            .with_default("./lib/shared")
+            .prompt()?;
+        (Some(target.into()), Some(Ecosystem::Custom))
+    } else {
+        let eco = if link_type == "composer package" {
+            Ecosystem::Composer
+        } else {
+            Ecosystem::Npm
+        };
+        (None, Some(eco))
+    };
 
     #[cfg(target_os = "macos")]
     let strategy_hint = "reflink (APFS)";
@@ -21,6 +38,10 @@ pub async fn run() -> anyhow::Result<()> {
     let strategy_hint = "copy";
 
     println!("✓ Suggested sync strategy: {strategy_hint}");
+
+    let start_daemon = Confirm::new("Start background daemon after linking?")
+        .with_default(true)
+        .prompt()?;
 
     let proceed = Confirm::new("Create link now?")
         .with_default(true)
@@ -30,12 +51,14 @@ pub async fn run() -> anyhow::Result<()> {
         super::link::run(
             source.into(),
             consumer.into(),
+            target,
+            ecosystem,
             false,
             false,
             false,
+            !start_daemon,
         )
         .await?;
-        println!("\n✓ Done. Run `linkd watch` to start the daemon with live UI.");
     }
 
     Ok(())

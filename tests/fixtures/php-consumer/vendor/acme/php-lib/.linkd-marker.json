@@ -1,0 +1,7 @@
+{
+    "link_id": "00000000-0000-0000-0000-000000000001",
+    "source_hash": "sha256:placeholder",
+    "synced_at": "2026-01-01T00:00:00Z",
+    "strategy": "copy",
+    "isolation_mode": "project-local"
+}

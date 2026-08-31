@@ -22,7 +22,10 @@ pub fn detect_package_manager(consumer_root: &Path) -> PackageManager {
         return PackageManager::Bun;
     }
     if consumer_root.join("package-lock.json").exists()
-        || consumer_root.join("node_modules").join(".package-lock.json").exists()
+        || consumer_root
+            .join("node_modules")
+            .join(".package-lock.json")
+            .exists()
     {
         return PackageManager::Npm;
     }
@@ -47,9 +50,6 @@ pub fn completion_markers(consumer_root: &Path, pm: PackageManager) -> Vec<PathB
             }
             v
         }
-        PackageManager::Unknown => vec![
-            nm.join(".package-lock.json"),
-            nm.join(".modules.yaml"),
-        ],
+        PackageManager::Unknown => vec![nm.join(".package-lock.json"), nm.join(".modules.yaml")],
     }
 }

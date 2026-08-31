@@ -1,0 +1,7 @@
+{
+  "name": "web-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "js-lib": "^1.0.0"
+  }
+}

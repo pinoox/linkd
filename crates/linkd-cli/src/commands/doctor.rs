@@ -1,6 +1,6 @@
-use linkd_adapters_npm::{
-    detect_package_manager, is_yarn_pnp, PackageManager, PnpmStoreDetector,
-};
+use linkd_adapters_npm::{detect_package_manager, is_yarn_pnp, PackageManager, PnpmStoreDetector};
+#[cfg(unix)]
+use linkd_core::daemon_socket_path;
 use linkd_core::{is_ci, linkd_home};
 use linkd_ipc::IpcClient;
 use linkd_registry::RegistryStore;
@@ -28,13 +28,16 @@ pub async fn run(explain: Option<&str>) -> anyhow::Result<()> {
     if daemon_ok {
         println!("✓ Daemon running");
     } else {
-        println!("… Daemon not running (start with: linkd watch)");
+        println!("… Daemon not running (start with: linkd start or linkd watch)");
     }
 
     let reg = RegistryStore::default().load()?;
     for link in &reg.links {
         if is_yarn_pnp(&link.consumer_root) {
-            println!("✗ Yarn PnP detected in {} — switch to nodeLinker: node-modules", link.consumer_root.display());
+            println!(
+                "✗ Yarn PnP detected in {} — switch to nodeLinker: node-modules",
+                link.consumer_root.display()
+            );
             issues += 1;
         }
 
@@ -80,8 +83,26 @@ pub async fn run(explain: Option<&str>) -> anyhow::Result<()> {
         }
     }
 
-    let pm = detect_package_manager(std::env::current_dir()?.as_path());
-    println!("✓ Detected package manager: {}", pm_label(pm));
+    let cwd = std::env::current_dir()?;
+    let pm = detect_package_manager(cwd.as_path());
+    let has_composer_json = cwd.join("composer.json").is_file();
+    let composer_bin_available = is_executable_on_path("composer");
+
+    if has_composer_json {
+        if composer_bin_available {
+            println!("✓ Detected Composer project (composer binary found on PATH)");
+        } else {
+            println!(
+                "⚠ Detected Composer project (composer.json present, but `composer` not on PATH)"
+            );
+            issues += 1;
+        }
+    } else {
+        println!("✓ Detected package manager: {}", pm_label(pm));
+        if composer_bin_available {
+            println!("✓ Composer CLI available on PATH");
+        }
+    }
 
     println!("\nHome: {}", linkd_home().display());
 
@@ -92,6 +113,29 @@ pub async fn run(explain: Option<&str>) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn is_executable_on_path(exe_name: &str) -> bool {
+    if let Some(path_var) = std::env::var_os("PATH") {
+        for dir in std::env::split_paths(&path_var) {
+            #[cfg(windows)]
+            {
+                if dir.join(format!("{exe_name}.bat")).is_file()
+                    || dir.join(format!("{exe_name}.exe")).is_file()
+                    || dir.join(format!("{exe_name}.cmd")).is_file()
+                {
+                    return true;
+                }
+            }
+            #[cfg(not(windows))]
+            {
+                if dir.join(exe_name).is_file() {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 fn pm_label(pm: PackageManager) -> &'static str {
@@ -113,6 +157,45 @@ fn explain_topic(topic: &str) -> anyhow::Result<()> {
                  When needed, it creates an isolated copy under:\n\
                    node_modules/.linkd-shadow/<package>\n\
                  and repoints the project symlink to that shadow copy."
+            );
+        }
+        "composer" => {
+            println!(
+                "Composer ecosystem in linkd:\n\
+                 - Links resolve to consumer/vendor/<vendor>/<package>\n\
+                 - Watches vendor/composer/installed.json and classmap files\n\
+                 - When new PHP classes are added to source, run:\n\
+                     composer dump-autoload\n\
+                   in the consumer project if classes are not detected."
+            );
+        }
+        "autostart" => {
+            println!(
+                "Background daemon:\n\
+                   linkd start   — detached daemon (recommended)\n\
+                   linkd watch   — foreground with live UI\n\
+                 Auto-start on `linkd link` is enabled by default (~/.linkd/config.json).\n\n\
+                 macOS launchd plist (~/Library/LaunchAgents/dev.linkd.daemon.plist):\n\
+                 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+                 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
+                 <plist version=\"1.0\">\n\
+                 <dict>\n\
+                   <key>Label</key><string>dev.linkd.daemon</string>\n\
+                   <key>ProgramArguments</key>\n\
+                   <array><string>/usr/local/bin/linkd</string><string>--daemon-internal</string></array>\n\
+                   <key>RunAtLoad</key><true/>\n\
+                   <key>KeepAlive</key><true/>\n\
+                 </dict>\n\
+                 </plist>\n\n\
+                 Linux systemd user unit (~/.config/systemd/user/linkd.service):\n\
+                 [Unit]\n\
+                 Description=linkd local-dev link daemon\n\
+                 After=default.target\n\n\
+                 [Service]\n\
+                 ExecStart=/usr/local/bin/linkd --daemon-internal\n\
+                 Restart=always\n\n\
+                 [Install]\n\
+                 WantedBy=default.target"
             );
         }
         other => anyhow::bail!("unknown explain topic: {other}"),

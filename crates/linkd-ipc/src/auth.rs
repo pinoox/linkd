@@ -1,6 +1,8 @@
 use std::fs;
 
-use linkd_core::{auth_token_path, ensure_home, set_owner_only_permissions, LinkdError, LinkdResult};
+use linkd_core::{
+    auth_token_path, ensure_home, set_owner_only_permissions, LinkdError, LinkdResult,
+};
 
 pub fn load_auth_token() -> LinkdResult<String> {
     ensure_home().map_err(|e| LinkdError::io(linkd_core::linkd_home(), e))?;

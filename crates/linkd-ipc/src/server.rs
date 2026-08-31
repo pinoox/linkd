@@ -11,10 +11,12 @@ use crate::auth::verify_auth_token;
 use crate::protocol::{decode_line, encode_line, IpcRequest, IpcResponse, LinkStatusSnapshot};
 
 pub type ReconcileHook = Arc<dyn Fn(Option<uuid::Uuid>) + Send + Sync>;
+pub type ShutdownHook = Arc<dyn Fn() + Send + Sync>;
 
 pub struct IpcServer {
     registry: RegistryStore,
     on_reconcile: Option<ReconcileHook>,
+    on_shutdown: Option<ShutdownHook>,
     pm_hint: Arc<Mutex<Option<String>>>,
 }
 
@@ -23,8 +25,14 @@ impl IpcServer {
         Self {
             registry,
             on_reconcile: None,
+            on_shutdown: None,
             pm_hint: Arc::new(Mutex::new(None)),
         }
+    }
+
+    pub fn with_pm_hint(mut self, hint: Arc<Mutex<Option<String>>>) -> Self {
+        self.pm_hint = hint;
+        self
     }
 
     pub fn with_reconcile_hook(mut self, hook: ReconcileHook) -> Self {
@@ -32,8 +40,14 @@ impl IpcServer {
         self
     }
 
+    pub fn with_shutdown_hook(mut self, hook: ShutdownHook) -> Self {
+        self.on_shutdown = Some(hook);
+        self
+    }
+
     pub async fn run(self) -> LinkdResult<()> {
-        linkd_core::ensure_home().map_err(|e| linkd_core::LinkdError::io(linkd_core::linkd_home(), e))?;
+        linkd_core::ensure_home()
+            .map_err(|e| linkd_core::LinkdError::io(linkd_core::linkd_home(), e))?;
 
         #[cfg(unix)]
         {
@@ -45,7 +59,8 @@ impl IpcServer {
                 let _ = std::fs::remove_file(&path);
             }
 
-            let listener = UnixListener::bind(&path).map_err(|e| linkd_core::LinkdError::io(&path, e))?;
+            let listener =
+                UnixListener::bind(&path).map_err(|e| linkd_core::LinkdError::io(&path, e))?;
             std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))
                 .map_err(|e| linkd_core::LinkdError::io(&path, e))?;
 
@@ -87,6 +102,7 @@ impl IpcServer {
         Self {
             registry: RegistryStore::new(self.registry.path().to_path_buf()),
             on_reconcile: self.on_reconcile.clone(),
+            on_shutdown: self.on_shutdown.clone(),
             pm_hint: self.pm_hint.clone(),
         }
     }
@@ -102,7 +118,8 @@ impl IpcServer {
             .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?
         {
             let resp = self.dispatch_line(&line).await;
-            let payload = encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+            let payload =
+                encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
             writer
                 .write_all(payload.as_bytes())
                 .await
@@ -128,7 +145,8 @@ impl IpcServer {
             .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
         let line = String::from_utf8_lossy(&buf[..n]);
         let resp = self.dispatch_line(&line).await;
-        let payload = encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+        let payload =
+            encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
         pipe.write_all(payload.as_bytes())
             .await
             .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
@@ -203,6 +221,9 @@ impl IpcServer {
             }
             IpcRequest::Shutdown { .. } => {
                 info!("shutdown requested");
+                if let Some(hook) = &self.on_shutdown {
+                    hook();
+                }
                 IpcResponse::ok_message("shutting down")
             }
         }

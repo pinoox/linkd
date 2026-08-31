@@ -2,7 +2,10 @@
 
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use std::thread;
 use std::time::Duration;
 
@@ -61,6 +64,9 @@ fn atomic_swap_under_load() {
     stop.store(true, Ordering::Relaxed);
     reader.join().unwrap();
 
-    assert!(!saw_missing.load(Ordering::Relaxed), "target path was missing during swap");
+    assert!(
+        !saw_missing.load(Ordering::Relaxed),
+        "target path was missing during swap"
+    );
     assert!(target.join("v2.js").exists());
 }

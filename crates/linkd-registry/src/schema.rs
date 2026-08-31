@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
-use linkd_core::{Ecosystem, IsolationMode, LinkEntry, LinkSyncStatus, SyncStrategy};
+use linkd_core::{Ecosystem, IsolationMode, LinkEntry, LinkMode, LinkSyncStatus, SyncStrategy};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub const REGISTRY_VERSION: u32 = 1;
+pub const REGISTRY_VERSION: u32 = 2;
+const REGISTRY_VERSION_V1: u32 = 1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryFile {
@@ -22,26 +23,50 @@ impl Default for RegistryFile {
     }
 }
 
+impl RegistryFile {
+    /// Upgrade v1 registry entries in-place (serde defaults fill new fields).
+    pub fn migrate(mut self) -> Self {
+        if self.version == REGISTRY_VERSION_V1 {
+            for link in &mut self.links {
+                if link.ecosystem == Ecosystem::Npm && link.link_mode == LinkMode::default() {
+                    link.link_mode = LinkMode::PackageManager;
+                }
+            }
+            self.version = REGISTRY_VERSION;
+        }
+        self
+    }
+}
+
+pub struct NewLinkParams {
+    pub package_name: String,
+    pub source_path: PathBuf,
+    pub consumer_root: PathBuf,
+    pub sync_target: PathBuf,
+    pub ecosystem: Ecosystem,
+    pub link_mode: LinkMode,
+    pub custom_target: Option<PathBuf>,
+    pub detected_pm: Option<String>,
+    pub strategy: SyncStrategy,
+    pub isolation_mode: IsolationMode,
+}
+
 pub struct Registry;
 
 impl Registry {
-    pub fn new_link(
-        package_name: String,
-        source_path: PathBuf,
-        consumer_root: PathBuf,
-        sync_target: PathBuf,
-        strategy: SyncStrategy,
-        isolation_mode: IsolationMode,
-    ) -> LinkEntry {
+    pub fn new_link(params: NewLinkParams) -> LinkEntry {
         LinkEntry {
             id: Uuid::new_v4(),
-            package_name,
-            source_path,
-            consumer_root,
-            ecosystem: Ecosystem::Npm,
-            strategy,
-            isolation_mode,
-            sync_target,
+            package_name: params.package_name,
+            source_path: params.source_path,
+            consumer_root: params.consumer_root,
+            ecosystem: params.ecosystem,
+            link_mode: params.link_mode,
+            custom_target: params.custom_target,
+            detected_pm: params.detected_pm,
+            strategy: params.strategy,
+            isolation_mode: params.isolation_mode,
+            sync_target: params.sync_target,
             created_at: Utc::now(),
             last_sync_at: None,
             last_sync_hash: None,
@@ -67,17 +92,13 @@ impl Registry {
     }
 
     pub fn remove_by_package(links: &mut Vec<LinkEntry>, name: &str) -> Option<LinkEntry> {
-        links.iter()
+        links
+            .iter()
             .position(|l| l.package_name == name)
             .map(|idx| links.remove(idx))
     }
 
-    pub fn update_sync(
-        entry: &mut LinkEntry,
-        hash: String,
-        file_count: u32,
-        at: DateTime<Utc>,
-    ) {
+    pub fn update_sync(entry: &mut LinkEntry, hash: String, file_count: u32, at: DateTime<Utc>) {
         entry.last_sync_hash = Some(hash);
         entry.last_sync_at = Some(at);
         entry.last_sync_status = LinkSyncStatus::Synced;

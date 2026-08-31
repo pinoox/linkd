@@ -76,7 +76,10 @@ impl HumanError {
             },
             LinkdError::DaemonNotRunning => HumanError {
                 title: "linkd daemon is not running".into(),
-                detail: vec!["Start it with: linkd watch".into()],
+                detail: vec![
+                    "Start background daemon: linkd start".into(),
+                    "Or foreground with UI: linkd watch".into(),
+                ],
                 hint: None,
             },
             LinkdError::NpmPackFailed(msg) => HumanError {

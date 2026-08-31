@@ -1,6 +1,6 @@
 # linkd
 
-Local-dev link daemon for npm/pnpm. Keeps your in-development packages synced into `node_modules` **without** editing `package.json` — survives `npm install` / `pnpm install` via a reconciliation loop.
+Local-dev link daemon for npm/pnpm/yarn/bun and Composer. Keeps your in-development packages synced into `node_modules` or `vendor` **without** editing manifest files — survives reinstalls via a reconciliation loop.
 
 ## Quick start
 
@@ -9,44 +9,58 @@ Local-dev link daemon for npm/pnpm. Keeps your in-development packages synced in
 cargo install --path crates/linkd-cli
 # or: curl -fsSL https://linkd.dev/install.sh | sh
 
-# Link a local package into a consumer project
+# Link a local package (auto-starts background daemon)
 linkd link ./packages/my-lib ../my-app
 
-# Run daemon with live terminal UI
-linkd watch
+# PHP / Composer
+linkd link ./packages/php-lib ../php-app
+
+# Custom path (no package manager)
+linkd link ./shared ./apps/web --target ./apps/web/lib/shared
+
+# Daemon control
+linkd start    # background
+linkd stop     # graceful shutdown
+linkd watch    # foreground + live UI
 ```
 
 ## Why linkd?
 
-Package managers copy registry versions into `node_modules` on every install. Traditional `npm link` / symlinks break when installs rerun. **linkd** runs a background controller that restores your dev copy after installs — like a Kubernetes reconciler for local paths.
+Package managers copy registry versions on every install. Traditional symlinks break when installs rerun. **linkd** runs a background controller that restores your dev copy after installs — like a Kubernetes reconciler for local paths.
 
-### Safety defaults (v2)
+### Safety defaults
 
 - **reflink/copy** by default (not hardlink)
-- **Never writes to pnpm global store** — uses project-local shadow copies
+- **Never writes to pnpm global store** — project-local shadow copies
 - **Atomic directory swap** — no window where the package path is missing
-- **PM completion markers** (`.modules.yaml`, `.package-lock.json`) instead of fragile process detection
+- **PM completion markers** instead of fragile process detection
+- **Nested path guard** — prevents watch loops on custom paths
 
 ## Commands
 
 | Command | Description |
 |---|---|
-| `linkd link <source> [consumer]` | Register + sync a local package |
+| `linkd link <source> [consumer]` | Register + sync (npm/composer auto-detect) |
+| `linkd link ... --target <path>` | Custom path sync |
 | `linkd unlink <name\|source>` | Remove a link |
 | `linkd list` | List active links |
+| `linkd start` | Background daemon |
+| `linkd stop [--force]` | Stop daemon |
 | `linkd watch` | Foreground daemon + live UI |
-| `linkd status [--json]` | One-shot status |
-| `linkd doctor [--explain pnpm-store]` | Environment checks |
+| `linkd status [--json]` | Daemon + links snapshot |
+| `linkd doctor [--explain topic]` | Environment checks |
 | `linkd logs [-f]` | View daemon logs |
-| `linkd init` | Interactive setup wizard |
+| `linkd init` | Quick setup wizard (inquire) |
+| `linkd wizard` | Full-screen setup wizard (ratatui) |
 | `linkd completions <shell>` | Shell completions |
 
 ## Architecture
 
 ```
-~/.linkd/registry.json   ← desired state (global, not in your repo)
+~/.linkd/registry.json   ← desired state (global)
 linkd daemon             ← watchers + reconciler
-node_modules/<pkg>       ← actual state + .linkd-marker.json
+node_modules/<pkg>       ← npm sync target + .linkd-marker.json
+vendor/<v>/<p>           ← composer sync target + .linkd-marker.json
 ```
 
 See [docs/adr/](docs/adr/) for design decisions.
@@ -55,8 +69,8 @@ See [docs/adr/](docs/adr/) for design decisions.
 
 ```bash
 cargo test --workspace
-cargo run -p linkd-cli -- link ./fixtures/my-lib ./fixtures/my-app
-cargo run -p linkd-cli -- watch
+cargo run -p linkd-cli -- link ./tests/fixtures/my-lib ./tests/fixtures/consumer-smoke
+cargo run -p linkd-cli -- start
 ```
 
 ## License

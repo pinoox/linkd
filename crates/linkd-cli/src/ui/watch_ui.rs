@@ -35,7 +35,9 @@ fn run_loop(terminal: &mut DefaultTerminal) -> io::Result<()> {
             ))];
 
             if links.is_empty() {
-                lines.push(Line::from(" No links yet. Use: linkd link <source> [consumer]"));
+                lines.push(Line::from(
+                    " No links yet. Use: linkd link <source> [consumer]",
+                ));
             } else {
                 for link in &links {
                     let status = format!("{:?}", link.last_sync_status);

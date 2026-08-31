@@ -142,7 +142,9 @@ impl IpcClient {
             })
             .await?;
         match resp {
-            IpcResponse::Ok { snapshot, .. } => snapshot.ok_or(LinkdError::Other("no snapshot".into())),
+            IpcResponse::Ok { snapshot, .. } => {
+                snapshot.ok_or(LinkdError::Other("no snapshot".into()))
+            }
             IpcResponse::Error { message } => Err(LinkdError::Other(message)),
         }
     }
@@ -152,6 +154,18 @@ impl IpcClient {
             .request(IpcRequest::TriggerReconcile {
                 auth_token: self.token.clone(),
                 link_id,
+            })
+            .await?;
+        match resp {
+            IpcResponse::Ok { .. } => Ok(()),
+            IpcResponse::Error { message } => Err(LinkdError::Other(message)),
+        }
+    }
+
+    pub async fn shutdown(&self) -> LinkdResult<()> {
+        let resp = self
+            .request(IpcRequest::Shutdown {
+                auth_token: self.token.clone(),
             })
             .await?;
         match resp {

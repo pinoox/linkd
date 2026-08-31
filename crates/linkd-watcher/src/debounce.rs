@@ -23,7 +23,10 @@ impl DebouncePool {
 
     pub fn push(&mut self, key: impl Into<String>, path: PathBuf) {
         let key = key.into();
-        let entry = self.pending.entry(key.clone()).or_insert((Instant::now(), Vec::new()));
+        let entry = self
+            .pending
+            .entry(key.clone())
+            .or_insert((Instant::now(), Vec::new()));
         entry.0 = Instant::now();
         entry.1.push(path);
     }

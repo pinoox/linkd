@@ -1,0 +1,9 @@
+{
+  "name": "acme/php-lib",
+  "description": "Monorepo PHP library",
+  "autoload": {
+    "psr-4": {
+      "Acme\\": "src/"
+    }
+  }
+}

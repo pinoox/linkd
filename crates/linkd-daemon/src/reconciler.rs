@@ -2,11 +2,11 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use chrono::Utc;
-use linkd_adapters_npm::{ensure_shadow_isolation, PnpmStoreDetector};
-use linkd_core::{
-    LinkEntry, LinkMarker, LinkSyncStatus, LinkdError, LinkdResult,
+use linkd_adapters::{
+    build_allowlist_for_link, ensure_isolation, list_files_for_link, post_sync_hint_for_link,
+    resolve_for_reconcile,
 };
-use linkd_pack::{list_pack_files_cached, list_pack_files_fallback};
+use linkd_core::{content_hash, LinkEntry, LinkMarker, LinkSyncStatus, LinkdError, LinkdResult};
 use linkd_registry::{Registry, RegistryStore};
 use linkd_sync::SyncEngine;
 use tracing::{error, info, warn};
@@ -48,6 +48,9 @@ impl Reconciler {
                     entry.sync_target = target;
                     entry.isolation_mode = isolation;
                 })?;
+                if let Some(hint) = post_sync_hint_for_link(&link) {
+                    info!("hint for {}: {hint}", link.package_name);
+                }
                 info!("synced {} ({} files)", link.package_name, count);
                 Ok(())
             }
@@ -60,18 +63,15 @@ impl Reconciler {
         }
     }
 
-    fn sync_link(&self, link: &LinkEntry) -> LinkdResult<(String, u32, PathBuf, linkd_core::IsolationMode)> {
-        let resolved = PnpmStoreDetector::resolve(&link.consumer_root, &link.package_name)?;
-        ensure_shadow_isolation(&link.consumer_root, &link.package_name, &resolved)?;
+    fn sync_link(
+        &self,
+        link: &LinkEntry,
+    ) -> LinkdResult<(String, u32, PathBuf, linkd_core::IsolationMode)> {
+        let resolved = resolve_for_reconcile(link)?;
+        ensure_isolation(link, &resolved)?;
 
-        let allowlist =
-            PnpmStoreDetector::build_allowlist(&link.consumer_root, resolved.forbidden_roots.clone());
-        PnpmStoreDetector::assert_never_writes_global_store(&resolved.sync_target)?;
-
-        let files = match list_pack_files_cached(&link.source_path) {
-            Ok(f) => f,
-            Err(_) => list_pack_files_fallback(&link.source_path)?,
-        };
+        let allowlist = build_allowlist_for_link(link, &resolved);
+        let files = list_files_for_link(link)?;
 
         let engine = SyncEngine::new(allowlist);
         let output = engine.sync(
@@ -100,13 +100,14 @@ impl Reconciler {
     }
 
     pub fn needs_reconcile(&self, link: &LinkEntry) -> LinkdResult<bool> {
-        let marker = LinkMarker::read(&link.sync_target).map_err(|e| LinkdError::io(&link.sync_target, e))?;
+        let marker = LinkMarker::read(&link.sync_target)
+            .map_err(|e| LinkdError::io(&link.sync_target, e))?;
         if marker.is_none() {
             return Ok(true);
         }
 
-        let files = list_pack_files_fallback(&link.source_path)?;
-        let hash = linkd_core::content_hash(&link.source_path, &files);
+        let files = list_files_for_link(link)?;
+        let hash = content_hash(&link.source_path, &files);
         Ok(marker.map(|m| m.source_hash != hash).unwrap_or(true))
     }
 }

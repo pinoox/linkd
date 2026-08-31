@@ -41,8 +41,8 @@ impl SyncEngine {
 
         let hash = content_hash(source_root, files);
         let tmp = self.prepare_tmp_dir(link_id)?;
-        let file_count = mirror_tree(source_root, &tmp, files, strategy)
-            .map_err(|e| LinkdError::io(&tmp, e))?;
+        let file_count =
+            mirror_tree(source_root, &tmp, files, strategy).map_err(|e| LinkdError::io(&tmp, e))?;
 
         let marker = LinkMarker {
             link_id,
@@ -51,9 +51,7 @@ impl SyncEngine {
             strategy,
             isolation_mode,
         };
-        marker
-            .write(&tmp)
-            .map_err(|e| LinkdError::io(&tmp, e))?;
+        marker.write(&tmp).map_err(|e| LinkdError::io(&tmp, e))?;
 
         self.atomic_swap(&tmp, sync_target)?;
 

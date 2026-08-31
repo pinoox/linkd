@@ -42,10 +42,17 @@ fn never_writes_directly_to_global_store() {
 
     let source = tmp.path().join("source");
     fs::create_dir_all(&source).unwrap();
-    fs::write(source.join("package.json"), br#"{"name":"pkg","version":"1.0.0"}"#).unwrap();
+    fs::write(
+        source.join("package.json"),
+        br#"{"name":"pkg","version":"1.0.0"}"#,
+    )
+    .unwrap();
     fs::write(source.join("index.js"), b"dev").unwrap();
 
-    let shadow = consumer.join("node_modules").join(".linkd-shadow").join("pkg");
+    let shadow = consumer
+        .join("node_modules")
+        .join(".linkd-shadow")
+        .join("pkg");
     let engine = SyncEngine::new(allowlist);
 
     let out = engine

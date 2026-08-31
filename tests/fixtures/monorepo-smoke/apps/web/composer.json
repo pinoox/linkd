@@ -1,0 +1,6 @@
+{
+  "name": "apps/web",
+  "require": {
+    "acme/php-lib": "^1.0"
+  }
+}

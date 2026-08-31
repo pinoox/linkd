@@ -3,10 +3,15 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)]
 #[serde(tag = "method", rename_all = "snake_case")]
 pub enum IpcRequest {
-    Ping { auth_token: String },
-    ListLinks { auth_token: String },
+    Ping {
+        auth_token: String,
+    },
+    ListLinks {
+        auth_token: String,
+    },
     AddLink {
         auth_token: String,
         entry: LinkEntry,
@@ -15,12 +20,16 @@ pub enum IpcRequest {
         auth_token: String,
         package_name: String,
     },
-    GetStatus { auth_token: String },
+    GetStatus {
+        auth_token: String,
+    },
     TriggerReconcile {
         auth_token: String,
         link_id: Option<Uuid>,
     },
-    Shutdown { auth_token: String },
+    Shutdown {
+        auth_token: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,7 +50,9 @@ pub enum IpcResponse {
         #[serde(default)]
         snapshot: Option<LinkStatusSnapshot>,
     },
-    Error { message: String },
+    Error {
+        message: String,
+    },
 }
 
 impl IpcResponse {

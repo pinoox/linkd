@@ -44,7 +44,8 @@ impl PackCache {
     pub fn write(source: &Path, files: &[PathBuf]) -> LinkdResult<()> {
         fs::create_dir_all(pack_cache_dir()).map_err(|e| LinkdError::io(pack_cache_dir(), e))?;
         let path = Self::cache_path(source)?;
-        let json = serde_json::to_string_pretty(files).map_err(|e| LinkdError::NpmPackFailed(e.to_string()))?;
+        let json = serde_json::to_string_pretty(files)
+            .map_err(|e| LinkdError::NpmPackFailed(e.to_string()))?;
         fs::write(&path, json).map_err(|e| LinkdError::io(&path, e))?;
         Ok(())
     }

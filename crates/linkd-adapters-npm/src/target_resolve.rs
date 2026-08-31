@@ -2,9 +2,10 @@ use std::path::{Path, PathBuf};
 
 pub fn parse_package_name(source: &Path) -> linkd_core::LinkdResult<String> {
     let pkg_json = source.join("package.json");
-    let data = std::fs::read_to_string(&pkg_json).map_err(|e| linkd_core::LinkdError::io(&pkg_json, e))?;
-    let v: serde_json::Value =
-        serde_json::from_str(&data).map_err(|e| linkd_core::LinkdError::NpmPackFailed(e.to_string()))?;
+    let data =
+        std::fs::read_to_string(&pkg_json).map_err(|e| linkd_core::LinkdError::io(&pkg_json, e))?;
+    let v: serde_json::Value = serde_json::from_str(&data)
+        .map_err(|e| linkd_core::LinkdError::NpmPackFailed(e.to_string()))?;
     v.get("name")
         .and_then(|n| n.as_str())
         .map(String::from)

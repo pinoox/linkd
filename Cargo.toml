@@ -8,6 +8,8 @@ members = [
     "crates/linkd-watcher",
     "crates/linkd-ipc",
     "crates/linkd-adapters-npm",
+    "crates/linkd-adapters-composer",
+    "crates/linkd-adapters",
     "crates/linkd-daemon",
     "crates/linkd-cli",
     "tests/integration",
@@ -52,6 +54,8 @@ linkd-pack = { path = "crates/linkd-pack" }
 linkd-watcher = { path = "crates/linkd-watcher" }
 linkd-ipc = { path = "crates/linkd-ipc" }
 linkd-adapters-npm = { path = "crates/linkd-adapters-npm" }
+linkd-adapters-composer = { path = "crates/linkd-adapters-composer" }
+linkd-adapters = { path = "crates/linkd-adapters" }
 linkd-daemon = { path = "crates/linkd-daemon" }
 
 [profile.release]

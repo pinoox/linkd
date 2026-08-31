@@ -742,6 +742,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "linkd-adapters"
+version = "0.1.0"
+dependencies = [
+ "linkd-adapters-composer",
+ "linkd-adapters-npm",
+ "linkd-core",
+ "linkd-pack",
+ "linkd-sync",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-composer"
+version = "0.1.0"
+dependencies = [
+ "linkd-core",
+ "linkd-sync",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
 name = "linkd-adapters-npm"
 version = "0.1.0"
 dependencies = [
@@ -762,6 +789,7 @@ dependencies = [
  "clap_complete",
  "crossterm 0.28.1",
  "inquire",
+ "linkd-adapters",
  "linkd-adapters-npm",
  "linkd-core",
  "linkd-daemon",
@@ -797,10 +825,9 @@ name = "linkd-daemon"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "linkd-adapters-npm",
+ "linkd-adapters",
  "linkd-core",
  "linkd-ipc",
- "linkd-pack",
  "linkd-registry",
  "linkd-sync",
  "linkd-watcher",
@@ -814,6 +841,8 @@ dependencies = [
 name = "linkd-integration-tests"
 version = "0.1.0"
 dependencies = [
+ "linkd-adapters",
+ "linkd-adapters-composer",
  "linkd-adapters-npm",
  "linkd-core",
  "linkd-daemon",
@@ -880,7 +909,7 @@ dependencies = [
 name = "linkd-watcher"
 version = "0.1.0"
 dependencies = [
- "linkd-adapters-npm",
+ "linkd-adapters",
  "linkd-core",
  "notify",
  "tokio",
