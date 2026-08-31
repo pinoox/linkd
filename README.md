@@ -11,7 +11,46 @@
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/linkd-dev/linkd/releases)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
 
+<br/>
+
+[**Overview**](#-overview) •
+[**Installation**](#-instant-1-line-installation) •
+[**Quick Start**](#-quick-start) •
+[**Ecosystems**](#-supported-ecosystems--examples) •
+[**TUI Monitor**](#️-interactive-terminal-uis) •
+[**CLI Reference**](#️-complete-cli-command-reference) •
+[**Architecture**](#️-architecture--safety-guarantees)
+
 </div>
+
+---
+
+<details open>
+<summary><b>📑 Table of Contents</b></summary>
+
+- [📖 Overview](#-overview)
+- [🚀 Instant 1-Line Installation](#-instant-1-line-installation)
+  - [Linux & macOS](#-linux--macos)
+  - [Windows (PowerShell)](#-windows-powershell)
+  - [Via Cargo](#-via-cargo-from-source)
+- [⚡ Quick Start](#-quick-start)
+- [🌐 Supported Ecosystems & Examples](#-supported-ecosystems--examples)
+  - [1. JavaScript / TypeScript (npm, pnpm, yarn, bun)](#1-javascript--typescript-npm-pnpm-yarn-bun)
+  - [2. PHP (Composer)](#2-php-composer)
+  - [3. Python (uv, pip, poetry)](#3-python-uv-pip-poetry)
+  - [4. Go (Go Modules & Vendor)](#4-go-go-modules--vendor)
+  - [5. Rust (Cargo)](#5-rust-cargo)
+  - [6. Custom Directory](#6-custom-directory-framework-agnostic)
+- [🖥️ Interactive Terminal UIs](#️-interactive-terminal-uis)
+  - [Live Monitor Dashboard (`linkd monitor` / `linkd top`)](#-live-monitor-dashboard-linkd-monitor--linkd-top)
+  - [Setup Wizards (`linkd wizard` & `linkd init`)](#-setup-wizards-linkd-wizard--linkd-init)
+- [🛠️ Complete CLI Command Reference](#️-complete-cli-command-reference)
+- [🏗️ Architecture & Safety Guarantees](#️-architecture--safety-guarantees)
+- [🔧 Shell Completions](#-shell-completions)
+- [🤝 Contributing & Development](#-contributing--development)
+- [📄 License](#-license)
+
+</details>
 
 ---
 
