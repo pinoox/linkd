@@ -1,0 +1,12 @@
+[package]
+name = "linkd-watcher"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+linkd-adapters-npm = { workspace = true }
+linkd-core = { workspace = true }
+notify = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }

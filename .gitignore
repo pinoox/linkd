@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+.DS_Store
+.cursor/
+.vscode/
+.idea/
+.project/
+.settings/
+.classpath/
+.factorypath/
+.agent/
+.env

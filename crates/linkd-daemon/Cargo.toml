@@ -1,0 +1,19 @@
+[package]
+name = "linkd-daemon"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+linkd-adapters-npm = { workspace = true }
+linkd-core = { workspace = true }
+linkd-ipc = { workspace = true }
+linkd-pack = { workspace = true }
+linkd-registry = { workspace = true }
+linkd-sync = { workspace = true }
+linkd-watcher = { workspace = true }
+sysinfo = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

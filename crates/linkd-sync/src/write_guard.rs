@@ -1,0 +1,170 @@
+use std::path::{Component, Path, PathBuf};
+
+use linkd_core::{LinkdError, LinkdResult};
+
+/// Paths that sync is allowed to write into.
+#[derive(Debug, Clone)]
+pub struct WriteAllowlist {
+    consumer_root: PathBuf,
+    forbidden_roots: Vec<PathBuf>,
+}
+
+impl WriteAllowlist {
+    pub fn new(consumer_root: PathBuf, forbidden_roots: Vec<PathBuf>) -> Self {
+        Self {
+            consumer_root,
+            forbidden_roots,
+        }
+    }
+
+    pub fn from_consumer(consumer_root: &Path, forbidden_roots: Vec<PathBuf>) -> Self {
+        Self::new(
+            consumer_root.canonicalize().unwrap_or_else(|_| consumer_root.to_path_buf()),
+            forbidden_roots
+                .into_iter()
+                .map(|p| p.canonicalize().unwrap_or(p))
+                .collect(),
+        )
+    }
+
+    fn node_modules_root(&self) -> PathBuf {
+        self.consumer_root.join("node_modules")
+    }
+
+    pub fn is_allowed(&self, path: &Path) -> bool {
+        let canonical = normalize_path(path);
+
+        for forbidden in &self.forbidden_roots {
+            if canonical.starts_with(normalize_path(forbidden)) {
+                return false;
+            }
+        }
+
+        let nm = normalize_path(&self.node_modules_root());
+        canonical.starts_with(&nm)
+    }
+
+    pub fn assert_writable(&self, path: &Path) -> LinkdResult<()> {
+        if self.is_allowed(path) {
+            return Ok(());
+        }
+
+        for forbidden in &self.forbidden_roots {
+            if normalize_path(path).starts_with(normalize_path(forbidden)) {
+                return Err(LinkdError::PnpmGlobalStoreForbidden(
+                    path.display().to_string(),
+                ));
+            }
+        }
+
+        Err(LinkdError::WriteBlocked(format!(
+            "path {} is outside allowed write region under {}",
+            path.display(),
+            normalize_path(&self.node_modules_root()).display()
+        )))
+    }
+}
+
+fn normalize_path(path: &Path) -> PathBuf {
+    let canonical = path
+        .canonicalize()
+        .unwrap_or_else(|_| path.to_path_buf());
+    strip_verbatim_prefix(canonical)
+}
+
+#[cfg(windows)]
+fn strip_verbatim_prefix(path: PathBuf) -> PathBuf {
+    let s = path.to_string_lossy();
+    if let Some(stripped) = s.strip_prefix(r"\\?\") {
+        PathBuf::from(stripped)
+    } else {
+        path
+    }
+}
+
+#[cfg(not(windows))]
+fn strip_verbatim_prefix(path: PathBuf) -> PathBuf {
+    path
+}
+
+pub struct WriteGuard<'a> {
+    allowlist: &'a WriteAllowlist,
+}
+
+impl<'a> WriteGuard<'a> {
+    pub fn new(allowlist: &'a WriteAllowlist) -> Self {
+        Self { allowlist }
+    }
+
+    pub fn check(&self, path: &Path) -> LinkdResult<()> {
+        self.allowlist.assert_writable(path)
+    }
+
+    pub fn check_all(&self, paths: &[PathBuf]) -> LinkdResult<()> {
+        for p in paths {
+            self.check(p)?;
+        }
+        Ok(())
+    }
+}
+
+pub fn shadow_dir(consumer_root: &Path, package_name: &str) -> PathBuf {
+    let mut shadow = consumer_root.join("node_modules").join(".linkd-shadow");
+    for component in package_name.split('/') {
+        shadow.push(component);
+    }
+    shadow
+}
+
+fn _sanitize_component(name: &str) -> String {
+    name.trim_start_matches('@').replace('/', "-")
+}
+
+pub fn is_path_inside(path: &Path, root: &Path) -> bool {
+    let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    path.starts_with(root)
+}
+
+pub fn relative_path(base: &Path, full: &Path) -> Option<PathBuf> {
+    full.strip_prefix(base).ok().map(|p| {
+        p.components()
+            .filter(|c| !matches!(c, Component::CurDir))
+            .collect()
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn blocks_forbidden_global_store() {
+        let tmp = TempDir::new().unwrap();
+        let consumer = tmp.path().join("app");
+        let nm = consumer.join("node_modules");
+        std::fs::create_dir_all(&nm).unwrap();
+
+        let global_store = tmp.path().join("pnpm-store");
+        std::fs::create_dir_all(&global_store).unwrap();
+
+        let allowlist = WriteAllowlist::from_consumer(&consumer, vec![global_store.clone()]);
+        let bad = global_store.join("v3/files/00/ab/pkg/index.js");
+        std::fs::create_dir_all(bad.parent().unwrap()).unwrap();
+        std::fs::write(&bad, b"x").unwrap();
+
+        assert!(allowlist.assert_writable(&bad).is_err());
+    }
+
+    #[test]
+    fn allows_shadow_path() {
+        let tmp = TempDir::new().unwrap();
+        let consumer = tmp.path().join("app");
+        let shadow = shadow_dir(&consumer, "@scope/pkg");
+        std::fs::create_dir_all(&shadow).unwrap();
+
+        let allowlist = WriteAllowlist::from_consumer(&consumer, vec![]);
+        assert!(allowlist.assert_writable(&shadow.join("index.js")).is_ok());
+    }
+}

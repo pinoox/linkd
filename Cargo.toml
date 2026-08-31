@@ -1,0 +1,60 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/linkd-core",
+    "crates/linkd-registry",
+    "crates/linkd-sync",
+    "crates/linkd-pack",
+    "crates/linkd-watcher",
+    "crates/linkd-ipc",
+    "crates/linkd-adapters-npm",
+    "crates/linkd-daemon",
+    "crates/linkd-cli",
+    "tests/integration",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["linkd contributors"]
+repository = "https://github.com/linkd-dev/linkd"
+
+[workspace.dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive", "env"] }
+clap_complete = "4"
+crossterm = "0.28"
+directories = "5"
+fd-lock = "4"
+inquire = "0.7"
+notify = "6"
+ratatui = "0.29"
+reflink = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sysinfo = "0.32"
+tempfile = "3"
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+walkdir = "2"
+
+linkd-core = { path = "crates/linkd-core" }
+linkd-registry = { path = "crates/linkd-registry" }
+linkd-sync = { path = "crates/linkd-sync" }
+linkd-pack = { path = "crates/linkd-pack" }
+linkd-watcher = { path = "crates/linkd-watcher" }
+linkd-ipc = { path = "crates/linkd-ipc" }
+linkd-adapters-npm = { path = "crates/linkd-adapters-npm" }
+linkd-daemon = { path = "crates/linkd-daemon" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

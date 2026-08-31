@@ -1,0 +1,27 @@
+[package]
+name = "linkd-integration-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dev-dependencies]
+linkd-adapters-npm = { workspace = true }
+linkd-core = { workspace = true }
+linkd-daemon = { workspace = true }
+linkd-registry = { workspace = true }
+linkd-sync = { workspace = true }
+tempfile = { workspace = true }
+uuid = { workspace = true }
+
+[[test]]
+name = "pnpm_store_leak_test"
+path = "pnpm_store_leak_test.rs"
+
+[[test]]
+name = "atomic_swap_under_load"
+path = "atomic_swap_under_load.rs"
+
+[[test]]
+name = "reinstall_simulation"
+path = "reinstall_simulation.rs"
