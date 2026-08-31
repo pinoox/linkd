@@ -7,7 +7,7 @@ license.workspace = true
 [dependencies]
 chrono = { workspace = true }
 linkd-core = { workspace = true }
-reflink = { workspace = true }
+reflink-copy = { workspace = true }
 sha2 = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }

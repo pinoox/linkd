@@ -34,7 +34,7 @@ pub fn copy_file_with_strategy(
                 }
             }
         }
-        SyncStrategy::Reflink => match reflink::reflink(source, dest) {
+        SyncStrategy::Reflink => match reflink_copy::reflink(source, dest) {
             Ok(()) => Ok(()),
             Err(_) => fs::copy(source, dest).map(|_| ()),
         },
