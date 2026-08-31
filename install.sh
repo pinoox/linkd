@@ -27,7 +27,7 @@ case "$OS" in
     esac
     ;;
   *)
-    echo "❌ Unsupported OS: $OS. On Windows, please use: irm https://raw.githubusercontent.com/$REPO/main/install.ps1 | iex"
+    echo "❌ Unsupported OS: $OS. On Windows, please use: irm https://raw.githubusercontent.com/$REPO/master/install.ps1 | iex"
     exit 1
     ;;
 esac

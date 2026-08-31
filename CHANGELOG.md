@@ -81,8 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### 6. Installation & Distribution
 - Zero-prerequisite 1-line installation scripts:
-  - Linux & macOS: `curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/main/install.sh | bash`
-  - Windows: `irm https://raw.githubusercontent.com/pinoox/linkd/main/install.ps1 | iex`
+  - Linux & macOS: `curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/master/install.sh | bash`
+  - Windows: `irm https://raw.githubusercontent.com/pinoox/linkd/master/install.ps1 | iex`
 - GitHub Actions CI/CD matrix producing standalone release binaries:
   - `linkd-x86_64-unknown-linux-gnu.tar.gz`
   - `linkd-x86_64-unknown-linux-musl.tar.gz` (fully static binary)

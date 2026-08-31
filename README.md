@@ -73,12 +73,12 @@ Install `linkd` instantly without needing Rust or any prior dependencies:
 
 ### 🐧 Linux & 🍎 macOS
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/master/install.sh | bash
 ```
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-irm https://raw.githubusercontent.com/pinoox/linkd/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/pinoox/linkd/master/install.ps1 | iex
 ```
 
 ### 📦 Via Cargo (from source)
