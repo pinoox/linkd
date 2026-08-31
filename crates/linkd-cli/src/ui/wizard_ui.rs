@@ -84,7 +84,7 @@ impl WizardState {
         self.step = match self.step {
             Step::LinkType => Step::Source,
             Step::Source => Step::Consumer,
-            Step::Consumer if self.link_type == 2 => Step::Target,
+            Step::Consumer if self.link_type == 6 => Step::Target,
             Step::Consumer => Step::Confirm,
             Step::Target => Step::Confirm,
             Step::Confirm => Step::Confirm,
@@ -98,7 +98,7 @@ impl WizardState {
             Step::Source => Step::LinkType,
             Step::Consumer => Step::Source,
             Step::Target => Step::Consumer,
-            Step::Confirm if self.link_type == 2 => Step::Target,
+            Step::Confirm if self.link_type == 6 => Step::Target,
             Step::Confirm => Step::Consumer,
         };
     }
@@ -106,7 +106,11 @@ impl WizardState {
     fn ecosystem(&self) -> Ecosystem {
         match self.link_type {
             1 => Ecosystem::Composer,
-            2 => Ecosystem::Custom,
+            2 => Ecosystem::Python,
+            3 => Ecosystem::Go,
+            4 => Ecosystem::Cargo,
+            5 => Ecosystem::Jvm,
+            6 => Ecosystem::Custom,
             _ => Ecosystem::Npm,
         }
     }
@@ -114,7 +118,7 @@ impl WizardState {
     fn try_finish(&self) -> Result<WizardResult, String> {
         let source = PathBuf::from(&self.source);
         let consumer = PathBuf::from(&self.consumer);
-        let target = if self.link_type == 2 {
+        let target = if self.link_type == 6 {
             Some(PathBuf::from(&self.target))
         } else {
             None
@@ -151,11 +155,21 @@ fn run_loop(
     terminal: &mut DefaultTerminal,
     state: &mut WizardState,
 ) -> io::Result<Option<WizardResult>> {
+    const LINK_TYPES: &[&str] = &[
+        "npm package",
+        "composer package",
+        "python (uv/pip/poetry)",
+        "go module",
+        "rust (cargo)",
+        "java/kotlin (jvm)",
+        "custom path",
+    ];
+
     loop {
         terminal.draw(|frame| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Min(8), Constraint::Length(2)])
+                .constraints([Constraint::Min(10), Constraint::Length(2)])
                 .split(frame.area());
 
             let title = format!(" linkd wizard — step {}/5 ", state.step_index());
@@ -166,10 +180,7 @@ fn run_loop(
 
             match state.step {
                 Step::LinkType => {
-                    for (i, label) in ["npm package", "composer package", "custom path"]
-                        .iter()
-                        .enumerate()
-                    {
+                    for (i, label) in LINK_TYPES.iter().enumerate() {
                         let style = if i == state.link_type {
                             Style::default().fg(Color::Cyan)
                         } else {
@@ -195,7 +206,7 @@ fn run_loop(
                 Step::Confirm => {
                     lines.push(Line::from(format!("Source:   {}", state.source)));
                     lines.push(Line::from(format!("Consumer: {}", state.consumer)));
-                    if state.link_type == 2 {
+                    if state.link_type == 6 {
                         lines.push(Line::from(format!("Target:   {}", state.target)));
                     }
                     lines.push(Line::from(format!(
@@ -232,7 +243,7 @@ fn run_loop(
                             state.link_type = state.link_type.saturating_sub(1);
                         }
                         KeyCode::Down | KeyCode::Char('j') => {
-                            state.link_type = (state.link_type + 1).min(2);
+                            state.link_type = (state.link_type + 1).min(LINK_TYPES.len() - 1);
                         }
                         KeyCode::Enter => state.next(),
                         KeyCode::Esc => return Ok(None),

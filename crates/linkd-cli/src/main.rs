@@ -25,6 +25,10 @@ struct Cli {
 enum EcosystemArg {
     Npm,
     Composer,
+    Python,
+    Go,
+    Cargo,
+    Jvm,
     Custom,
 }
 
@@ -33,6 +37,10 @@ impl From<EcosystemArg> for Ecosystem {
         match value {
             EcosystemArg::Npm => Ecosystem::Npm,
             EcosystemArg::Composer => Ecosystem::Composer,
+            EcosystemArg::Python => Ecosystem::Python,
+            EcosystemArg::Go => Ecosystem::Go,
+            EcosystemArg::Cargo => Ecosystem::Cargo,
+            EcosystemArg::Jvm => Ecosystem::Jvm,
             EcosystemArg::Custom => Ecosystem::Custom,
         }
     }

@@ -167,3 +167,171 @@ impl EcosystemAdapter for ComposerAdapter {
         linkd_adapters_composer::autoload_hint(source, consumer)
     }
 }
+
+pub struct PythonAdapter;
+
+impl EcosystemAdapter for PythonAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Python
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_python::detect_python(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_python::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_python::resolve_python_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_python::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_python::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![
+            consumer.join(".venv"),
+            consumer.join("venv"),
+            consumer.join("env"),
+        ]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_python::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct GoAdapter;
+
+impl EcosystemAdapter for GoAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Go
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_go::detect_go(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_go::parse_module_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_go::resolve_go_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_go::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_go::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("vendor")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_go::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct CargoAdapter;
+
+impl EcosystemAdapter for CargoAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Cargo
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_cargo::detect_cargo(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_cargo::parse_crate_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_cargo::resolve_cargo_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_cargo::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_cargo::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("vendor")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_cargo::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct JvmAdapter;
+
+impl EcosystemAdapter for JvmAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Jvm
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_jvm::detect_jvm(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_jvm::parse_jvm_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_jvm::resolve_jvm_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_jvm::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_jvm::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("libs")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_jvm::post_sync_hint(source, consumer)
+    }
+}

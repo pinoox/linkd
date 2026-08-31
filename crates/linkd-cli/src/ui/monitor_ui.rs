@@ -420,6 +420,16 @@ fn render_links_list(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
                 linkd_core::Ecosystem::Composer => {
                     Span::styled("[composer]", Style::default().fg(Color::Magenta))
                 }
+                linkd_core::Ecosystem::Python => {
+                    Span::styled("[python]", Style::default().fg(Color::Yellow))
+                }
+                linkd_core::Ecosystem::Go => Span::styled("[go]", Style::default().fg(Color::Cyan)),
+                linkd_core::Ecosystem::Cargo => {
+                    Span::styled("[cargo]", Style::default().fg(Color::LightRed))
+                }
+                linkd_core::Ecosystem::Jvm => {
+                    Span::styled("[jvm]", Style::default().fg(Color::LightGreen))
+                }
                 linkd_core::Ecosystem::Custom => {
                     Span::styled("[custom]", Style::default().fg(Color::Blue))
                 }

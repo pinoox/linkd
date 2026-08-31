@@ -11,6 +11,10 @@ pub enum Ecosystem {
     #[default]
     Npm,
     Composer,
+    Python,
+    Go,
+    Cargo,
+    Jvm,
     Custom,
 }
 

@@ -2,26 +2,68 @@ use std::path::{Path, PathBuf};
 
 use linkd_core::{Ecosystem, LinkEntry, LinkMode, LinkdResult, ResolvedSyncTarget};
 
-use crate::{ComposerAdapter, CustomAdapter, EcosystemAdapter, NpmAdapter};
+use crate::{
+    CargoAdapter, ComposerAdapter, CustomAdapter, EcosystemAdapter, GoAdapter, JvmAdapter,
+    NpmAdapter, PythonAdapter,
+};
 
 pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
     match ecosystem {
         Ecosystem::Npm => Box::new(NpmAdapter),
         Ecosystem::Composer => Box::new(ComposerAdapter),
+        Ecosystem::Python => Box::new(PythonAdapter),
+        Ecosystem::Go => Box::new(GoAdapter),
+        Ecosystem::Cargo => Box::new(CargoAdapter),
+        Ecosystem::Jvm => Box::new(JvmAdapter),
         Ecosystem::Custom => Box::new(CustomAdapter),
     }
 }
 
 pub fn detect_ecosystem(source: &Path, consumer: &Path) -> Ecosystem {
+    if source.join("pyproject.toml").is_file()
+        || source.join("setup.py").is_file()
+        || source.join("setup.cfg").is_file()
+    {
+        return Ecosystem::Python;
+    }
+    if source.join("go.mod").is_file() {
+        return Ecosystem::Go;
+    }
+    if source.join("Cargo.toml").is_file() {
+        return Ecosystem::Cargo;
+    }
+    if source.join("pom.xml").is_file()
+        || source.join("build.gradle").is_file()
+        || source.join("build.gradle.kts").is_file()
+    {
+        return Ecosystem::Jvm;
+    }
     if source.join("composer.json").is_file() && !source.join("package.json").is_file() {
         return Ecosystem::Composer;
     }
     if source.join("package.json").is_file() {
         return Ecosystem::Npm;
     }
+
+    if consumer.join(".venv").exists()
+        || consumer.join("venv").exists()
+        || consumer.join("Pipfile").is_file()
+    {
+        return Ecosystem::Python;
+    }
+    if consumer.join("go.mod").is_file() || consumer.join("go.work").is_file() {
+        return Ecosystem::Go;
+    }
+    if consumer.join("Cargo.toml").is_file() {
+        return Ecosystem::Cargo;
+    }
+    if consumer.join("pom.xml").is_file() || consumer.join("build.gradle").is_file() {
+        return Ecosystem::Jvm;
+    }
     if consumer.join("composer.json").is_file() && !consumer.join("package.json").is_file() {
         return Ecosystem::Composer;
     }
+
     Ecosystem::Npm
 }
 
@@ -63,6 +105,10 @@ pub fn resolve_link(
             format!("{:?}", linkd_adapters_npm::detect_package_manager(consumer)).to_lowercase(),
         ),
         Ecosystem::Composer => Some("composer".into()),
+        Ecosystem::Python => Some("uv/pip".into()),
+        Ecosystem::Go => Some("go".into()),
+        Ecosystem::Cargo => Some("cargo".into()),
+        Ecosystem::Jvm => Some("maven/gradle".into()),
         Ecosystem::Custom => None,
     };
 
@@ -117,6 +163,26 @@ pub fn build_allowlist_for_link(
         Ecosystem::Composer => linkd_sync::WriteAllowlist::from_consumer_subdirs(
             &link.consumer_root,
             &["vendor"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Python => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &[".venv", "venv", "env"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Go => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["vendor"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Cargo => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["vendor", ".cargo"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Jvm => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["libs"],
             resolved.forbidden_roots.clone(),
         ),
         Ecosystem::Custom => {

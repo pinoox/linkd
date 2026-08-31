@@ -745,11 +745,26 @@ dependencies = [
 name = "linkd-adapters"
 version = "0.1.0"
 dependencies = [
+ "linkd-adapters-cargo",
  "linkd-adapters-composer",
+ "linkd-adapters-go",
+ "linkd-adapters-jvm",
  "linkd-adapters-npm",
+ "linkd-adapters-python",
  "linkd-core",
  "linkd-pack",
  "linkd-sync",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-cargo"
+version = "0.1.0"
+dependencies = [
+ "linkd-core",
  "serde",
  "serde_json",
  "tempfile",
@@ -769,6 +784,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "linkd-adapters-go"
+version = "0.1.0"
+dependencies = [
+ "linkd-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-jvm"
+version = "0.1.0"
+dependencies = [
+ "directories",
+ "linkd-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
 name = "linkd-adapters-npm"
 version = "0.1.0"
 dependencies = [
@@ -778,6 +816,17 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "linkd-adapters-python"
+version = "0.1.0"
+dependencies = [
+ "linkd-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "walkdir",
 ]
 
 [[package]]

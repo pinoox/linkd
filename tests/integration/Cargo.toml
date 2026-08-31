@@ -63,3 +63,19 @@ path = "monorepo_sync.rs"
 name = "monitor_events"
 path = "monitor_events.rs"
 
+[[test]]
+name = "python_sync"
+path = "python_sync.rs"
+
+[[test]]
+name = "go_sync"
+path = "go_sync.rs"
+
+[[test]]
+name = "cargo_sync"
+path = "cargo_sync.rs"
+
+[[test]]
+name = "jvm_sync"
+path = "jvm_sync.rs"
+

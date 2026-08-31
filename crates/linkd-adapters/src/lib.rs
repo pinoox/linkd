@@ -2,7 +2,9 @@ mod custom;
 mod dispatch;
 mod validate;
 
-pub use custom::{ComposerAdapter, CustomAdapter, NpmAdapter};
+pub use custom::{
+    CargoAdapter, ComposerAdapter, CustomAdapter, GoAdapter, JvmAdapter, NpmAdapter, PythonAdapter,
+};
 pub use dispatch::{
     adapter_for, build_allowlist_for_link, completion_markers_for_link, detect_ecosystem,
     ensure_isolation, list_files_for_link, post_sync_hint_for_link, resolve_for_reconcile,

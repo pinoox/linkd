@@ -1,0 +1,15 @@
+[package]
+name = "linkd-adapters-jvm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+directories = { workspace = true }
+linkd-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

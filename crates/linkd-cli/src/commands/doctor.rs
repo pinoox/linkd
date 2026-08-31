@@ -169,6 +169,37 @@ fn explain_topic(topic: &str) -> anyhow::Result<()> {
                    in the consumer project if classes are not detected."
             );
         }
+        "python" => {
+            println!(
+                "Python ecosystem in linkd (uv / pip / poetry):\n\
+                 - Links resolve to consumer/.venv/Lib/site-packages/<package> (or Unix lib/python*/...)\n\
+                 - Watches uv.lock, poetry.lock, requirements.txt, pyvenv.cfg\n\
+                 - Automatically filters __pycache__, *.pyc, .pytest_cache"
+            );
+        }
+        "go" => {
+            println!(
+                "Go ecosystem in linkd (Go modules / vendor):\n\
+                 - Links resolve to consumer/vendor/<module_path>\n\
+                 - Watches go.sum, go.work.sum, go.work\n\
+                 - Use `go build -mod=vendor` or Go workspaces (`go work`)"
+            );
+        }
+        "cargo" | "rust" => {
+            println!(
+                "Rust / Cargo ecosystem in linkd:\n\
+                 - Links resolve to consumer/vendor/<crate_name>\n\
+                 - Watches Cargo.lock\n\
+                 - Automatically filters target/ and build caches"
+            );
+        }
+        "jvm" | "maven" | "gradle" => {
+            println!(
+                "JVM ecosystem in linkd (Maven / Gradle):\n\
+                 - Links resolve to consumer/libs/<artifact> or Maven Local repo\n\
+                 - Watches pom.xml, build.gradle, gradle.lockfile"
+            );
+        }
         "autostart" => {
             println!(
                 "Background daemon:\n\

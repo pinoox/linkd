@@ -9,6 +9,10 @@ members = [
     "crates/linkd-ipc",
     "crates/linkd-adapters-npm",
     "crates/linkd-adapters-composer",
+    "crates/linkd-adapters-python",
+    "crates/linkd-adapters-go",
+    "crates/linkd-adapters-cargo",
+    "crates/linkd-adapters-jvm",
     "crates/linkd-adapters",
     "crates/linkd-daemon",
     "crates/linkd-cli",
@@ -55,6 +59,10 @@ linkd-watcher = { path = "crates/linkd-watcher" }
 linkd-ipc = { path = "crates/linkd-ipc" }
 linkd-adapters-npm = { path = "crates/linkd-adapters-npm" }
 linkd-adapters-composer = { path = "crates/linkd-adapters-composer" }
+linkd-adapters-python = { path = "crates/linkd-adapters-python" }
+linkd-adapters-go = { path = "crates/linkd-adapters-go" }
+linkd-adapters-cargo = { path = "crates/linkd-adapters-cargo" }
+linkd-adapters-jvm = { path = "crates/linkd-adapters-jvm" }
 linkd-adapters = { path = "crates/linkd-adapters" }
 linkd-daemon = { path = "crates/linkd-daemon" }
 

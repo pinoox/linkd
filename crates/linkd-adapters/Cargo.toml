@@ -5,8 +5,12 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+linkd-adapters-cargo = { workspace = true }
 linkd-adapters-composer = { workspace = true }
+linkd-adapters-go = { workspace = true }
+linkd-adapters-jvm = { workspace = true }
 linkd-adapters-npm = { workspace = true }
+linkd-adapters-python = { workspace = true }
 linkd-core = { workspace = true }
 linkd-pack = { workspace = true }
 linkd-sync = { workspace = true }
