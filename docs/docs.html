@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>linkd Documentation — Complete Guide, Tutorials & CLI Reference (v0.1.0)</title>
+  <meta name="description" content="Comprehensive documentation and guide for linkd v0.1.0: Multi-ecosystem local-dev package reconciliation for JavaScript, PHP, Python, Go, Rust, Java, and custom directories.">
+  <meta name="theme-color" content="#0d1117">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+  <style>
+    /* Docs Specific Layout */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 40px;
+      padding: 40px 0 80px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+    .docs-sidebar {
+      position: sticky;
+      top: 90px;
+      height: calc(100vh - 110px);
+      overflow-y: auto;
+      padding-right: 16px;
+      border-right: 1px solid var(--border-muted);
+    }
+    .sidebar-section {
+      margin-bottom: 24px;
+    }
+    .sidebar-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--fg-muted);
+      margin-bottom: 10px;
+      padding-left: 8px;
+    }
+    .sidebar-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-link {
+      display: block;
+      padding: 6px 10px;
+      font-size: 0.88rem;
+      color: var(--fg-default);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .sidebar-link:hover {
+      background-color: var(--bg-subtle);
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+    .sidebar-link.active {
+      background-color: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .docs-content {
+      min-width: 0;
+      line-height: 1.7;
+    }
+    .docs-content h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-muted);
+    }
+    .docs-content h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 48px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .docs-content h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 32px 0 12px;
+      color: var(--fg-default);
+    }
+    .docs-content p {
+      color: var(--fg-default);
+      margin-bottom: 18px;
+      font-size: 1rem;
+    }
+    .docs-content ul, .docs-content ol {
+      margin-bottom: 20px;
+      padding-left: 24px;
+    }
+    .docs-content li {
+      margin-bottom: 8px;
+    }
+    .callout {
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--accent-primary);
+      background-color: var(--bg-subtle);
+      margin: 24px 0;
+      font-size: 0.95rem;
+    }
+    .callout.tip {
+      border-left-color: var(--accent-green);
+      background-color: rgba(63, 185, 80, 0.08);
+    }
+    .callout.warning {
+      border-left-color: var(--accent-yellow);
+      background-color: rgba(210, 153, 34, 0.08);
+    }
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .code-wrapper {
+      position: relative;
+      margin: 20px 0;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-default);
+      background-color: var(--bg-inset);
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background-color: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-muted);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--fg-muted);
+    }
+    .code-wrapper pre {
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    @media (max-width: 960px) {
+      .docs-layout {
+        grid-template-columns: 1fr;
+      }
+      .docs-sidebar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container nav">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">⚡</div>
+        <span>linkd <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 4px">v0.1.0</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="#getting-started" class="nav-link" style="color: var(--accent-cyan)">Documentation</a></li>
+        <li><a href="index.html#ecosystems" class="nav-link">Ecosystems</a></li>
+        <li><a href="index.html#monitor" class="nav-link">TUI Monitor</a></li>
+        <li><a href="index.html#cli" class="nav-link">CLI Cheatsheet</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="https://github.com/linkd-dev/linkd" target="_blank" rel="noopener" class="btn btn-outline">
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container docs-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="docs-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Getting Started</div>
+        <ul class="sidebar-list">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#installation" class="sidebar-link">Installation</a></li>
+          <li><a href="#quickstart" class="sidebar-link">Quickstart Tutorial</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Core Concepts</div>
+        <ul class="sidebar-list">
+          <li><a href="#reconciler" class="sidebar-link">Reconciliation Loop</a></li>
+          <li><a href="#store-isolation" class="sidebar-link">pnpm Shadow Isolation</a></li>
+          <li><a href="#atomic-swaps" class="sidebar-link">Atomic Swaps & Markers</a></li>
+          <li><a href="#path-guards" class="sidebar-link">Watch-Loop Guards</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Ecosystem Guides</div>
+        <ul class="sidebar-list">
+          <li><a href="#eco-javascript" class="sidebar-link">🟢 JavaScript / TypeScript</a></li>
+          <li><a href="#eco-php" class="sidebar-link">🐘 PHP (Composer)</a></li>
+          <li><a href="#eco-python" class="sidebar-link">🐍 Python (uv / pip / poetry)</a></li>
+          <li><a href="#eco-go" class="sidebar-link">🐹 Go (Go Modules & Vendor)</a></li>
+          <li><a href="#eco-cargo" class="sidebar-link">🦀 Rust (Cargo Crates)</a></li>
+          <li><a href="#eco-jvm" class="sidebar-link">☕ Java / Kotlin (JVM)</a></li>
+          <li><a href="#eco-custom" class="sidebar-link">📁 Custom Paths</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Interactive Tools & TUI</div>
+        <ul class="sidebar-list">
+          <li><a href="#tui-monitor" class="sidebar-link">Live Monitor Dashboard</a></li>
+          <li><a href="#tui-wizards" class="sidebar-link">Dual Setup Wizards</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Daemon & Operations</div>
+        <ul class="sidebar-list">
+          <li><a href="#daemon-lifecycle" class="sidebar-link">Daemon Lifecycle & Autostart</a></li>
+          <li><a href="#doctor-diagnostics" class="sidebar-link">Diagnostics & Doctor</a></li>
+          <li><a href="#systemd-launchd" class="sidebar-link">Systemd & Launchd Services</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Reference</div>
+        <ul class="sidebar-list">
+          <li><a href="#cli-reference" class="sidebar-link">CLI Command Reference</a></li>
+          <li><a href="#faq" class="sidebar-link">FAQ & Troubleshooting</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Body -->
+    <main class="docs-content">
+      <div class="hero-pill">
+        <span>⚡ linkd v0.1.0 Official Documentation</span>
+      </div>
+
+      <h1 id="overview">Overview & Introduction</h1>
+      <p>
+        <strong>linkd</strong> is a local-dev link daemon engineered to solve the chronic fragility of package linking in modern monorepos and multi-repository workspaces.
+      </p>
+      <p>
+        Traditional workflows like <code>npm link</code>, <code>yarn link</code>, <code>composer link</code>, <code>pip install -e</code>, or <code>"file:../lib"</code> dependencies suffer from a fundamental problem: <em>package managers assume they own the target directory</em>. As soon as you run <code>npm install</code>, <code>composer update</code>, or <code>uv sync</code>, your local symlinks are obliterated and replaced with registry packages.
+      </p>
+      <p>
+        <strong>linkd introduces Kubernetes-style continuous reconciliation to local paths.</strong> A lightweight background daemon maintains a registry of desired link states, watches lockfiles for reinstall events, and instantly restores your dev packages within milliseconds without touching manifest files.
+      </p>
+
+      <div class="callout tip">
+        <div class="callout-title">💡 Why Zero Manifest Edits Matter</div>
+        Relative path dependencies like <code>"my-pkg": "file:../packages/my-pkg"</code> frequently leak into <code>package.json</code>, <code>composer.json</code>, or <code>pyproject.toml</code> and get accidentally committed to Git. With <code>linkd</code>, your manifests stay 100% untouched and clean.
+      </div>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="installation">📦 1-Line Installation</h2>
+      <p><code>linkd</code> ships as a standalone, zero-dependency compiled binary for Linux, macOS, and Windows.</p>
+
+      <h3>Linux & macOS (curl / bash)</h3>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Terminal</span><button class="copy-btn" data-text="curl -fsSL https://raw.githubusercontent.com/linkd-dev/linkd/main/install.sh | bash">Copy</button></div>
+        <pre><code class="t-cmd">curl -fsSL https://raw.githubusercontent.com/linkd-dev/linkd/main/install.sh | bash</code></pre>
+      </div>
+
+      <h3>Windows (PowerShell)</h3>
+      <div class="code-wrapper">
+        <div class="code-header"><span>PowerShell</span><button class="copy-btn" data-text="irm https://raw.githubusercontent.com/linkd-dev/linkd/main/install.ps1 | iex">Copy</button></div>
+        <pre><code class="t-cmd">irm https://raw.githubusercontent.com/linkd-dev/linkd/main/install.ps1 | iex</code></pre>
+      </div>
+
+      <h3>Via Cargo (from source)</h3>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Cargo</span><button class="copy-btn" data-text="cargo install --path crates/linkd-cli --locked">Copy</button></div>
+        <pre><code class="t-cmd">cargo install --path crates/linkd-cli --locked</code></pre>
+      </div>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="quickstart">⚡ Quickstart Tutorial</h2>
+      <p>Follow this 3-minute tutorial to link your first local package:</p>
+
+      <h3>Step 1: Link your package</h3>
+      <p>Point to your library source and your consumer project. <code>linkd</code> auto-detects the ecosystem, calculates target paths, and starts the background daemon automatically:</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Command</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd link ./packages/my-lib ./apps/my-app</span>
+<span class="t-cyan">ℹ Detected ecosystem: npm (pnpm detected)</span>
+<span class="t-green">✓ Synced my-lib → ./apps/my-app/node_modules/my-lib</span>
+<span class="t-purple">⚡ Started linkd background daemon (PID: 28419)</span></code></pre>
+      </div>
+
+      <h3>Step 2: Inspect real-time status in Live TUI Monitor</h3>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Command</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd monitor</span></code></pre>
+      </div>
+      <p>This opens a full-screen Ratatui terminal dashboard. You can watch real-time file updates, IPC sync events, force immediate syncs with <kbd>r</kbd>, or pause links with <kbd>Space</kbd>.</p>
+
+      <h3>Step 3: Unlink when you are done</h3>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Command</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd unlink my-lib</span>
+<span class="t-green">✓ Link 'my-lib' removed from registry.</span></code></pre>
+      </div>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="reconciler">🔄 Architecture: The Reconciliation Loop</h2>
+      <p>
+        <code>linkd</code> operates similarly to a Kubernetes controller:
+      </p>
+      <ol>
+        <li><strong>Desired State:</strong> Stored globally in <code>~/.linkd/registry.json</code>.</li>
+        <li><strong>Actual State:</strong> Monitored on the filesystem via notify file watchers and <code>.linkd-marker.json</code> files.</li>
+        <li><strong>Reconciliation Loop:</strong> When source files change, changes are debounced and synced. When lockfiles change (indicating an install occurred), the target directory is atomically restored.</li>
+      </ol>
+
+      <h3 id="store-isolation">🛡️ pnpm Global Store Safety Gate</h3>
+      <p>
+        In <code>pnpm</code>, packages in <code>node_modules</code> are hardlinks to a global content-addressable store (<code>~/.pnpm-store</code>). Writing directly into <code>node_modules</code> would contaminate the global cache for all projects on your computer.
+      </p>
+      <p>
+        <code>linkd</code> automatically detects pnpm, isolates the link by copying into a project-local shadow directory:
+        <br/><code>./apps/web/node_modules/.linkd-shadow/&lt;package&gt;</code><br/>
+        and repoints the package symlink safely to that shadow copy.
+      </p>
+
+      <h3 id="atomic-swaps">⚡ Atomic Swaps & Marker Provenance</h3>
+      <p>
+        To prevent build tools (webpack, vite, tsc, cargo) from crashing during writes, <code>linkd</code> prepares files in a temporary sibling directory and atomically swaps it using filesystem renames.
+      </p>
+
+      <h3 id="path-guards">🔁 Anti-Watch-Loop Guards</h3>
+      <p>
+        When custom paths or monorepos are linked, source and target folders could inadvertently nest. <code>linkd</code> strictly validates that neither path is a prefix or ancestor of the other, preventing infinite watcher loops.
+      </p>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="eco-javascript">🟢 JavaScript & TypeScript (npm, pnpm, yarn, bun)</h2>
+      <p>Automatically resolves <code>package.json</code> names, scoped packages (e.g. <code>@org/pkg</code>), and targets <code>node_modules/&lt;name&gt;</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/ui-kit ./apps/nextjs-app</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Watched Markers:</strong> <code>package-lock.json</code>, <code>pnpm-lock.yaml</code>, <code>yarn.lock</code>, <code>bun.lockb</code></li>
+        <li><strong>Filtered files:</strong> <code>node_modules</code>, <code>.git</code>, <code>dist/.cache</code></li>
+      </ul>
+
+      <h2 id="eco-php">🐘 PHP (Composer)</h2>
+      <p>Detects <code>composer.json</code>, extracts the <code>vendor/package</code> namespace, and syncs into <code>consumer/vendor/&lt;vendor&gt;/&lt;package&gt;</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/acme-logger ./apps/laravel-api</span></code></pre>
+      </div>
+      <div class="callout tip">
+        <div class="callout-title">Autoload Hint</div>
+        If you add new PHP classes, <code>linkd</code> alerts you if <code>composer dump-autoload</code> is needed to regenerate classmaps.
+      </div>
+
+      <h2 id="eco-python">🐍 Python (uv / pip / poetry / flit)</h2>
+      <p>Detects PEP 621 <code>pyproject.toml</code>, <code>setup.py</code>, or <code>setup.cfg</code>. Automatically locates virtual environments (<code>.venv/Lib/site-packages</code> on Windows, <code>.venv/lib/python*/site-packages</code> on Unix).</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/ml-core ./apps/fastapi-service</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>__pycache__</code>, <code>*.pyc</code>, <code>.pytest_cache</code>, <code>.mypy_cache</code>, <code>*.egg-info</code></li>
+        <li><strong>Watched Markers:</strong> <code>uv.lock</code>, <code>poetry.lock</code>, <code>Pipfile.lock</code>, <code>requirements.txt</code>, <code>pyvenv.cfg</code></li>
+      </ul>
+
+      <h2 id="eco-go">🐹 Go (Go Modules & Vendor)</h2>
+      <p>Extracts the module path from <code>go.mod</code> and syncs directly into <code>consumer/vendor/&lt;module_path&gt;</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/auth-lib ./apps/go-microservice</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Watched Markers:</strong> <code>go.sum</code>, <code>go.work.sum</code>, <code>go.work</code>, <code>vendor/modules.txt</code></li>
+        <li><strong>Usage:</strong> Run with standard <code>go build -mod=vendor</code> or Go workspace mode.</li>
+      </ul>
+
+      <h2 id="eco-cargo">🦀 Rust (Cargo Crates)</h2>
+      <p>Parses <code>[package.name]</code> from <code>Cargo.toml</code> and vendors into <code>consumer/vendor/&lt;crate_name&gt;</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./crates/common-types ./apps/rust-server</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Filtered files:</strong> <code>target/</code>, <code>.git</code>, <code>.cargo</code></li>
+        <li><strong>Watched Markers:</strong> <code>Cargo.lock</code>, <code>.cargo/config.toml</code></li>
+      </ul>
+
+      <h2 id="eco-jvm">☕ Java & Kotlin (JVM - Maven / Gradle)</h2>
+      <p>Parses Group and Artifact IDs from <code>pom.xml</code>, <code>build.gradle</code>, or <code>build.gradle.kts</code> and routes to <code>consumer/libs/&lt;artifact&gt;</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/java-sdk ./apps/spring-app</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Filtered files:</strong> <code>build/</code>, <code>target/</code>, <code>.gradle/</code>, <code>*.class</code></li>
+        <li><strong>Watched Markers:</strong> <code>pom.xml</code>, <code>build.gradle</code>, <code>gradle.lockfile</code></li>
+      </ul>
+
+      <h2 id="eco-custom">📁 Custom Paths (Any Framework / Asset Folder)</h2>
+      <p>Use the <code>--target</code> flag to link any directory to any destination without package manager assumptions:</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./shared-assets ./apps/electron-app --target ./apps/electron-app/src/assets/shared</span></code></pre>
+      </div>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="tui-monitor">🖥️ Live TUI Monitor Dashboard</h2>
+      <p>Launch the dashboard with <code>linkd monitor</code> (or aliases <code>linkd top</code> / <code>linkd dashboard</code>):</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Dashboard Hotkeys</span></div>
+        <pre><code><span class="t-cyan">r</span>       Force immediate reconcile/sync of selected link
+<span class="t-cyan">Space</span>   Toggle Pause / Resume sync on selected link
+<span class="t-cyan">u</span>       Unlink selected package
+<span class="t-cyan">c</span>       Clear active log view
+<span class="t-cyan">Tab</span>     Switch focus between Links list and Logs panel
+<span class="t-cyan">q</span> / <span class="t-cyan">Esc</span> Quit monitor dashboard (daemon continues in background)</code></pre>
+      </div>
+
+      <h2 id="tui-wizards">🧙 Setup Wizards</h2>
+      <ul>
+        <li><strong><code>linkd wizard</code>:</strong> Full-screen 5-step interactive TUI with arrow key navigation.</li>
+        <li><strong><code>linkd init</code>:</strong> Lightweight interactive command-line prompt.</li>
+      </ul>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="daemon-lifecycle">⚙️ Daemon Lifecycle & Service Setup</h2>
+      <p>Manage the background daemon directly via CLI:</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Commands</span></div>
+        <pre><code><span class="t-cmd">linkd start</span>        <span class="t-dim"># Start detached background daemon</span>
+<span class="t-cmd">linkd stop</span>         <span class="t-dim"># Graceful shutdown via IPC</span>
+<span class="t-cmd">linkd stop --force</span> <span class="t-dim"># Terminate PID immediately</span>
+<span class="t-cmd">linkd watch</span>        <span class="t-dim"># Run in foreground with live terminal logs</span>
+<span class="t-cmd">linkd status</span>       <span class="t-dim"># Instant snapshot of PID & link count</span>
+<span class="t-cmd">linkd logs -f</span>      <span class="t-dim"># Tail structured daemon logs</span></code></pre>
+      </div>
+
+      <h3 id="doctor-diagnostics">🩺 Running Diagnostics (linkd doctor)</h3>
+      <p>Use <code>linkd doctor</code> to inspect environment health, socket permissions, inotify limits, and package manager availability:</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Command</span></div>
+        <pre><code><span class="t-cmd">linkd doctor</span>
+<span class="t-cmd">linkd doctor --explain pnpm-store</span>
+<span class="t-cmd">linkd doctor --explain autostart</span>
+<span class="t-cmd">linkd doctor --explain python</span></code></pre>
+      </div>
+
+      <h3 id="systemd-launchd">🐧 Systemd & 🍎 macOS Launchd Auto-Start</h3>
+      <p>To run <code>linkd</code> automatically on system login:</p>
+
+      <h4>macOS Launchd plist (<code>~/Library/LaunchAgents/dev.linkd.daemon.plist</code>):</h4>
+      <div class="code-wrapper">
+        <div class="code-header"><span>XML</span></div>
+        <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;
+&lt;dict&gt;
+  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;dev.linkd.daemon&lt;/string&gt;
+  &lt;key&gt;ProgramArguments&lt;/key&gt;
+  &lt;array&gt;&lt;string&gt;/usr/local/bin/linkd&lt;/string&gt;&lt;string&gt;--daemon-internal&lt;/string&gt;&lt;/array&gt;
+  &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
+  &lt;key&gt;KeepAlive&lt;/key&gt;&lt;true/&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;</code></pre>
+      </div>
+
+      <h4>Linux Systemd User Unit (<code>~/.config/systemd/user/linkd.service</code>):</h4>
+      <div class="code-wrapper">
+        <div class="code-header"><span>INI</span></div>
+        <pre><code>[Unit]
+Description=linkd local-dev link daemon
+After=default.target
+
+[Service]
+ExecStart=/usr/local/bin/linkd --daemon-internal
+Restart=always
+
+[Install]
+WantedBy=default.target</code></pre>
+      </div>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="cli-reference">📖 CLI Command Reference</h2>
+      <table class="cli-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Flags & Arguments</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>linkd link</code></td>
+            <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
+            <td>Register and sync local package into consumer.</td>
+          </tr>
+          <tr>
+            <td><code>linkd unlink</code></td>
+            <td><code>&lt;target|name|source&gt;</code></td>
+            <td>Remove an active link and clean marker files.</td>
+          </tr>
+          <tr>
+            <td><code>linkd list</code></td>
+            <td><em>none</em></td>
+            <td>Table of active links, status, and target paths.</td>
+          </tr>
+          <tr>
+            <td><code>linkd monitor</code></td>
+            <td><code>[--start]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
+            <td>Launch full-screen Ratatui TUI dashboard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd start</code></td>
+            <td><em>none</em></td>
+            <td>Start daemon in background.</td>
+          </tr>
+          <tr>
+            <td><code>linkd stop</code></td>
+            <td><code>[--force]</code></td>
+            <td>Stop running background daemon.</td>
+          </tr>
+          <tr>
+            <td><code>linkd watch</code></td>
+            <td><em>none</em></td>
+            <td>Run foreground daemon with live logs.</td>
+          </tr>
+          <tr>
+            <td><code>linkd status</code></td>
+            <td><code>[--json]</code></td>
+            <td>Snapshot of daemon PID and active links.</td>
+          </tr>
+          <tr>
+            <td><code>linkd doctor</code></td>
+            <td><code>[--explain &lt;topic&gt;]</code></td>
+            <td>Diagnostics and environment checks.</td>
+          </tr>
+          <tr>
+            <td><code>linkd logs</code></td>
+            <td><code>[-f|--follow]</code></td>
+            <td>Tail background daemon logs.</td>
+          </tr>
+          <tr>
+            <td><code>linkd wizard</code></td>
+            <td><em>none</em></td>
+            <td>Full-screen 5-step guided wizard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd init</code></td>
+            <td><em>none</em></td>
+            <td>Inline prompt-based setup wizard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd completions</code></td>
+            <td><code>&lt;shell&gt;</code></td>
+            <td>Generate shell completions (bash, zsh, fish, pwsh).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr class="section" style="padding: 20px 0; margin: 0"/>
+
+      <h2 id="faq">❓ FAQ & Troubleshooting</h2>
+
+      <h3>Does linkd modify my package.json or composer.json?</h3>
+      <p><strong>No.</strong> <code>linkd</code> never modifies your source manifests. This ensures your Git working tree remains completely clean and no local file paths are accidentally committed to version control.</p>
+
+      <h3>How does linkd detect reinstalls?</h3>
+      <p>Rather than monitoring process trees which is fragile across operating systems, <code>linkd</code> sets up inotify/FSEvents/ReadDirectoryChanges watchers on package manager completion lockfiles (e.g. <code>package-lock.json</code>, <code>pnpm-lock.yaml</code>, <code>composer.lock</code>, <code>uv.lock</code>, <code>go.sum</code>, <code>Cargo.lock</code>). When an install completes, linkd immediately re-evaluates the target directory.</p>
+
+      <h3>Can I sync between arbitrary folders?</h3>
+      <p><strong>Yes.</strong> Use <code>linkd link &lt;source&gt; &lt;consumer&gt; --target &lt;path&gt;</code> to sync any folder into any destination with automatic loop-guarding.</p>
+
+      <div style="margin-top: 60px; padding: 24px; background-color: var(--bg-subtle); border-radius: var(--radius-lg); border: 1px solid var(--border-default); text-align: center">
+        <h3 style="margin-top: 0">Ready to streamline your local development?</h3>
+        <p style="color: var(--fg-muted)">Install linkd v0.1.0 today and enjoy rock-solid local package synchronization.</p>
+        <a href="index.html#install" class="btn btn-primary" style="margin-top: 8px">Get Started with linkd</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="docs.html">Documentation</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd">GitHub</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd/releases">Releases (v0.1.0)</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd/blob/main/LICENSE">MIT License</a></li>
+      </ul>
+      <p>© 2026 linkd contributors. Open source under the MIT License.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
