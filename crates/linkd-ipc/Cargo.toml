@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+chrono = { workspace = true }
 linkd-core = { workspace = true }
 linkd-registry = { workspace = true }
 serde = { workspace = true }

@@ -162,6 +162,74 @@ impl IpcClient {
         }
     }
 
+    pub async fn toggle_pause_link(&self, package_name: &str) -> LinkdResult<()> {
+        let resp = self
+            .request(IpcRequest::TogglePauseLink {
+                auth_token: self.token.clone(),
+                package_name: package_name.to_string(),
+            })
+            .await?;
+        match resp {
+            IpcResponse::Ok { .. } => Ok(()),
+            IpcResponse::Error { message } => Err(LinkdError::Other(message)),
+        }
+    }
+
+    pub async fn subscribe_events(
+        &self,
+    ) -> LinkdResult<tokio::sync::mpsc::Receiver<crate::DaemonEvent>> {
+        let (tx, rx) = tokio::sync::mpsc::channel(256);
+        let token = self.token.clone();
+
+        #[cfg(unix)]
+        {
+            let mut stream = self.connect().await?;
+            let req = IpcRequest::SubscribeEvents { auth_token: token };
+            let payload = encode_line(&req).map_err(|e| LinkdError::Other(e.to_string()))?;
+            stream
+                .write_all(payload.as_bytes())
+                .await
+                .map_err(|e| LinkdError::Other(e.to_string()))?;
+
+            tokio::spawn(async move {
+                let (reader, _) = stream.into_split();
+                let mut lines = BufReader::new(reader).lines();
+                while let Ok(Some(line)) = lines.next_line().await {
+                    if let Ok(event) = decode_line::<crate::DaemonEvent>(&line) {
+                        if tx.send(event).await.is_err() {
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        #[cfg(windows)]
+        {
+            use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+            let mut pipe = self.connect().await?;
+            let req = IpcRequest::SubscribeEvents { auth_token: token };
+            let payload = encode_line(&req).map_err(|e| LinkdError::Other(e.to_string()))?;
+            pipe.write_all(payload.as_bytes())
+                .await
+                .map_err(|e| LinkdError::Other(e.to_string()))?;
+
+            tokio::spawn(async move {
+                let (reader, _) = tokio::io::split(pipe);
+                let mut lines = BufReader::new(reader).lines();
+                while let Ok(Some(line)) = lines.next_line().await {
+                    if let Ok(event) = decode_line::<crate::DaemonEvent>(&line) {
+                        if tx.send(event).await.is_err() {
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        Ok(rx)
+    }
+
     pub async fn shutdown(&self) -> LinkdResult<()> {
         let resp = self
             .request(IpcRequest::Shutdown {

@@ -86,6 +86,12 @@ enum Commands {
         #[arg(long, short = 'f')]
         follow: bool,
     },
+    /// Live interactive TUI monitor dashboard
+    #[command(alias = "top", alias = "dashboard")]
+    Monitor {
+        #[arg(long)]
+        start: bool,
+    },
     /// Interactive quick setup wizard
     Init,
     /// Full-screen setup wizard
@@ -141,6 +147,7 @@ async fn main() -> anyhow::Result<()> {
         Commands::Status { json } => commands::status::run(json).await,
         Commands::Doctor { explain } => commands::doctor::run(explain.as_deref()).await,
         Commands::Logs { follow } => commands::logs::run(follow).await,
+        Commands::Monitor { start } => commands::monitor::run(start).await,
         Commands::Init => commands::init::run().await,
         Commands::Wizard => commands::wizard::run().await,
         Commands::Completions { shell } => {

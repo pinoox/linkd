@@ -27,6 +27,13 @@ pub enum IpcRequest {
         auth_token: String,
         link_id: Option<Uuid>,
     },
+    TogglePauseLink {
+        auth_token: String,
+        package_name: String,
+    },
+    SubscribeEvents {
+        auth_token: String,
+    },
     Shutdown {
         auth_token: String,
     },

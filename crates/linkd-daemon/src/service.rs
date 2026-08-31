@@ -49,6 +49,8 @@ impl DaemonService {
 
         let (shutdown_tx, mut shutdown_rx) = mpsc::channel::<()>(1);
 
+        let (events_tx, _) = tokio::sync::broadcast::channel::<linkd_ipc::DaemonEvent>(1024);
+
         let pm_hint = Arc::new(AsyncMutex::new(None));
         let pm_hint_ipc = pm_hint.clone();
 
@@ -66,9 +68,11 @@ impl DaemonService {
         let ipc = IpcServer::new(ipc_registry)
             .with_reconcile_hook(hook)
             .with_shutdown_hook(shutdown_hook)
-            .with_pm_hint(pm_hint_ipc);
+            .with_pm_hint(pm_hint_ipc)
+            .with_events_tx(events_tx.clone());
 
-        let reconciler = Reconciler::new(RegistryStore::new(registry_path.clone()));
+        let reconciler = Reconciler::new(RegistryStore::new(registry_path.clone()))
+            .with_events_tx(events_tx.clone());
         let queue_clone = self.reconcile_queue.clone();
         let registry_clone = RegistryStore::new(registry_path.clone());
 
@@ -114,6 +118,12 @@ impl DaemonService {
 
                     for evt in debounce.ready() {
                         info!("debounced event {:?} paths={}", evt.key, evt.paths.len());
+                        let _ = events_tx.send(linkd_ipc::DaemonEvent::LogMessage {
+                            timestamp: chrono::Utc::now(),
+                            level: "WATCH".into(),
+                            ecosystem: None,
+                            message: format!("event {:?} ({} paths)", evt.key, evt.paths.len()),
+                        });
                         enqueue_reconcile(&queue_clone, None);
                     }
 

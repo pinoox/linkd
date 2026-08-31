@@ -785,6 +785,7 @@ name = "linkd-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "clap_complete",
  "crossterm 0.28.1",
@@ -841,14 +842,17 @@ dependencies = [
 name = "linkd-integration-tests"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "linkd-adapters",
  "linkd-adapters-composer",
  "linkd-adapters-npm",
  "linkd-core",
  "linkd-daemon",
+ "linkd-ipc",
  "linkd-registry",
  "linkd-sync",
  "tempfile",
+ "tokio",
  "uuid",
 ]
 
@@ -856,6 +860,7 @@ dependencies = [
 name = "linkd-ipc"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "linkd-core",
  "linkd-registry",
  "serde",

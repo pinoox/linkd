@@ -3,6 +3,7 @@ pub mod init;
 pub mod link;
 pub mod list;
 pub mod logs;
+pub mod monitor;
 pub mod start;
 pub mod status;
 pub mod stop;

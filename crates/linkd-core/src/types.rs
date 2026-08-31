@@ -123,6 +123,7 @@ pub enum LinkSyncStatus {
     #[default]
     Pending,
     Error,
+    Paused,
 }
 
 pub fn hash_files(source_root: &Path, relative_files: &[PathBuf]) -> String {

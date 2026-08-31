@@ -6,14 +6,17 @@ license.workspace = true
 publish = false
 
 [dev-dependencies]
+chrono = { workspace = true }
 linkd-adapters = { workspace = true }
 linkd-adapters-composer = { workspace = true }
 linkd-adapters-npm = { workspace = true }
 linkd-core = { workspace = true }
 linkd-daemon = { workspace = true }
+linkd-ipc = { workspace = true }
 linkd-registry = { workspace = true }
 linkd-sync = { workspace = true }
 tempfile = { workspace = true }
+tokio = { workspace = true }
 uuid = { workspace = true }
 
 [[test]]
@@ -55,3 +58,8 @@ path = "daemon_lifecycle.rs"
 [[test]]
 name = "monorepo_sync"
 path = "monorepo_sync.rs"
+
+[[test]]
+name = "monitor_events"
+path = "monitor_events.rs"
+

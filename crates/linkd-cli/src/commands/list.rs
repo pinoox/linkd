@@ -25,6 +25,7 @@ pub async fn run() -> anyhow::Result<()> {
             LinkSyncStatus::Syncing => "⏳ syncing",
             LinkSyncStatus::Pending => "… pending",
             LinkSyncStatus::Error => "✗ error",
+            LinkSyncStatus::Paused => "⏸ paused",
         };
         println!(
             "  🔗 {} → {} ({:?}) {}",

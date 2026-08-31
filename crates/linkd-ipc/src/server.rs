@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
-use linkd_core::LinkdResult;
+use linkd_core::{LinkSyncStatus, LinkdResult};
 use linkd_registry::RegistryStore;
 #[cfg(unix)]
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::sync::Mutex;
+use tokio::sync::{broadcast, Mutex};
 use tracing::{error, info};
 
 use crate::auth::verify_auth_token;
+use crate::events::DaemonEvent;
 use crate::protocol::{decode_line, encode_line, IpcRequest, IpcResponse, LinkStatusSnapshot};
 
 pub type ReconcileHook = Arc<dyn Fn(Option<uuid::Uuid>) + Send + Sync>;
@@ -18,6 +19,7 @@ pub struct IpcServer {
     on_reconcile: Option<ReconcileHook>,
     on_shutdown: Option<ShutdownHook>,
     pm_hint: Arc<Mutex<Option<String>>>,
+    events_tx: Option<broadcast::Sender<DaemonEvent>>,
 }
 
 impl IpcServer {
@@ -27,6 +29,7 @@ impl IpcServer {
             on_reconcile: None,
             on_shutdown: None,
             pm_hint: Arc::new(Mutex::new(None)),
+            events_tx: None,
         }
     }
 
@@ -42,6 +45,11 @@ impl IpcServer {
 
     pub fn with_shutdown_hook(mut self, hook: ShutdownHook) -> Self {
         self.on_shutdown = Some(hook);
+        self
+    }
+
+    pub fn with_events_tx(mut self, tx: broadcast::Sender<DaemonEvent>) -> Self {
+        self.events_tx = Some(tx);
         self
     }
 
@@ -84,16 +92,28 @@ impl IpcServer {
         {
             use tokio::net::windows::named_pipe::ServerOptions;
 
+            let pipe_name = linkd_core::daemon_pipe_name();
+            let mut pipe = ServerOptions::new()
+                .first_pipe_instance(true)
+                .create(&pipe_name)
+                .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+
             loop {
-                let pipe = ServerOptions::new()
-                    .first_pipe_instance(true)
-                    .create(linkd_core::daemon_pipe_name())
+                pipe.connect()
+                    .await
+                    .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+
+                let connected_pipe = pipe;
+                pipe = ServerOptions::new()
+                    .create(&pipe_name)
                     .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
 
                 let server = self.clone_inner();
-                if let Err(e) = server.handle_connection_windows(pipe).await {
-                    error!("ipc pipe error: {e}");
-                }
+                tokio::spawn(async move {
+                    if let Err(e) = server.handle_connection_windows(connected_pipe).await {
+                        error!("ipc pipe error: {e}");
+                    }
+                });
             }
         }
     }
@@ -104,6 +124,7 @@ impl IpcServer {
             on_reconcile: self.on_reconcile.clone(),
             on_shutdown: self.on_shutdown.clone(),
             pm_hint: self.pm_hint.clone(),
+            events_tx: self.events_tx.clone(),
         }
     }
 
@@ -117,6 +138,45 @@ impl IpcServer {
             .await
             .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?
         {
+            let req_res: Result<IpcRequest, _> = decode_line(&line);
+            if let Ok(IpcRequest::SubscribeEvents { auth_token }) = req_res {
+                if let Err(e) = verify_auth_token(&auth_token) {
+                    let resp = IpcResponse::err(e.to_string());
+                    let payload = encode_line(&resp)
+                        .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                    let _ = writer.write_all(payload.as_bytes()).await;
+                    return Ok(());
+                }
+
+                if let Some(events_tx) = &self.events_tx {
+                    let mut rx = events_tx.subscribe();
+                    if let Ok(reg) = self.registry.load() {
+                        let hint = self.pm_hint.lock().await.clone();
+                        let initial = DaemonEvent::Snapshot {
+                            snapshot: LinkStatusSnapshot {
+                                links: reg.links,
+                                daemon_running: true,
+                                pm_install_hint: hint,
+                            },
+                        };
+                        let payload = encode_line(&initial)
+                            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                        if writer.write_all(payload.as_bytes()).await.is_err() {
+                            return Ok(());
+                        }
+                    }
+
+                    while let Ok(event) = rx.recv().await {
+                        let payload = encode_line(&event)
+                            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                        if writer.write_all(payload.as_bytes()).await.is_err() {
+                            break;
+                        }
+                    }
+                    return Ok(());
+                }
+            }
+
             let resp = self.dispatch_line(&line).await;
             let payload =
                 encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
@@ -134,9 +194,6 @@ impl IpcServer {
         mut pipe: tokio::net::windows::named_pipe::NamedPipeServer,
     ) -> LinkdResult<()> {
         use tokio::io::{AsyncReadExt, AsyncWriteExt};
-        pipe.connect()
-            .await
-            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
 
         let mut buf = vec![0u8; 65536];
         let n = pipe
@@ -144,6 +201,46 @@ impl IpcServer {
             .await
             .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
         let line = String::from_utf8_lossy(&buf[..n]);
+
+        let req_res: Result<IpcRequest, _> = decode_line(&line);
+        if let Ok(IpcRequest::SubscribeEvents { auth_token }) = req_res {
+            if let Err(e) = verify_auth_token(&auth_token) {
+                let resp = IpcResponse::err(e.to_string());
+                let payload =
+                    encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                let _ = pipe.write_all(payload.as_bytes()).await;
+                return Ok(());
+            }
+
+            if let Some(events_tx) = &self.events_tx {
+                let mut rx = events_tx.subscribe();
+                if let Ok(reg) = self.registry.load() {
+                    let hint = self.pm_hint.lock().await.clone();
+                    let initial = DaemonEvent::Snapshot {
+                        snapshot: LinkStatusSnapshot {
+                            links: reg.links,
+                            daemon_running: true,
+                            pm_install_hint: hint,
+                        },
+                    };
+                    let payload = encode_line(&initial)
+                        .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                    if pipe.write_all(payload.as_bytes()).await.is_err() {
+                        return Ok(());
+                    }
+                }
+
+                while let Ok(event) = rx.recv().await {
+                    let payload = encode_line(&event)
+                        .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                    if pipe.write_all(payload.as_bytes()).await.is_err() {
+                        break;
+                    }
+                }
+                return Ok(());
+            }
+        }
+
         let resp = self.dispatch_line(&line).await;
         let payload =
             encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
@@ -166,6 +263,8 @@ impl IpcServer {
             | IpcRequest::RemoveLink { auth_token, .. }
             | IpcRequest::GetStatus { auth_token, .. }
             | IpcRequest::TriggerReconcile { auth_token, .. }
+            | IpcRequest::TogglePauseLink { auth_token, .. }
+            | IpcRequest::SubscribeEvents { auth_token, .. }
             | IpcRequest::Shutdown { auth_token, .. } => auth_token.clone(),
         };
 
@@ -219,6 +318,46 @@ impl IpcServer {
                 }
                 IpcResponse::ok_message("reconcile queued")
             }
+            IpcRequest::TogglePauseLink { package_name, .. } => {
+                match self.registry.with_mut(|reg| {
+                    let link = reg
+                        .links
+                        .iter_mut()
+                        .find(|l| l.package_name == package_name)
+                        .ok_or_else(|| {
+                            linkd_core::LinkdError::PackageNotFound(package_name.clone())
+                        })?;
+                    let new_status = if link.last_sync_status == LinkSyncStatus::Paused {
+                        LinkSyncStatus::Pending
+                    } else {
+                        LinkSyncStatus::Paused
+                    };
+                    link.last_sync_status = new_status;
+                    let pkg_name = link.package_name.clone();
+                    let src = link.source_path.clone();
+                    let last_synced = link.last_sync_at;
+                    Ok((new_status, pkg_name, src, last_synced))
+                }) {
+                    Ok((new_status, pkg_name, src, last_synced)) => {
+                        if let Some(events_tx) = &self.events_tx {
+                            let _ = events_tx.send(DaemonEvent::LinkStatusChanged {
+                                package_name: pkg_name,
+                                source: src,
+                                status: new_status,
+                                last_synced_at: last_synced,
+                            });
+                        }
+                        if new_status == LinkSyncStatus::Pending {
+                            if let Some(hook) = &self.on_reconcile {
+                                hook(None);
+                            }
+                        }
+                        IpcResponse::ok_message(format!("link status: {new_status:?}"))
+                    }
+                    Err(e) => IpcResponse::err(e.to_string()),
+                }
+            }
+            IpcRequest::SubscribeEvents { .. } => IpcResponse::ok_message("subscribed"),
             IpcRequest::Shutdown { .. } => {
                 info!("shutdown requested");
                 if let Some(hook) = &self.on_shutdown {
