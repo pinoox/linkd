@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>linkd — Continuous Local-Dev Link Daemon for Multi-Ecosystem Monorepos</title>
+  <meta name="description" content="A Kubernetes-style continuous reconciliation loop for local package development in JS, PHP, Python, Go, Rust, and JVM. Survives reinstalls with zero manifest edits.">
+  <meta name="theme-color" content="#0d1117">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="linkd — Local-Dev Link Daemon">
+  <meta property="og:description" content="Continuous reconciliation that keeps your local packages synced across reinstalls without editing manifest files.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://linkd-dev.github.io/linkd/">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Header & Navigation -->
+  <header class="header">
+    <div class="container nav">
+      <a href="#" class="brand">
+        <div class="brand-icon">⚡</div>
+        <span>linkd</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#why" class="nav-link">Why linkd</a></li>
+        <li><a href="#ecosystems" class="nav-link">Ecosystems</a></li>
+        <li><a href="#monitor" class="nav-link">TUI Monitor</a></li>
+        <li><a href="#cli" class="nav-link">CLI Cheatsheet</a></li>
+        <li><a href="#architecture" class="nav-link">Architecture</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="https://github.com/linkd-dev/linkd" target="_blank" rel="noopener" class="btn btn-outline">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+          GitHub
+        </a>
+        <a href="#install" class="btn btn-primary">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span>⚡ linkd v0.1.0 Released</span> • <span>Multi-Ecosystem Ready</span>
+      </div>
+      <h1 class="hero-title">
+        The Local-Dev Link Daemon<br/>
+        for Modern Monorepos.
+      </h1>
+      <p class="hero-subtitle">
+        Continuous reconciliation that keeps your in-development packages synced into <code>node_modules</code>, <code>vendor</code>, or <code>site-packages</code> across reinstalls — with <strong>zero manifest edits</strong>.
+      </p>
+
+      <!-- Quick Install Box -->
+      <div class="install-box" id="install">
+        <div class="install-tabs">
+          <button class="install-tab active" data-target="bash">🐧 Linux / 🍎 macOS (curl)</button>
+          <button class="install-tab" data-target="powershell">🪟 Windows (PowerShell)</button>
+          <button class="install-tab" data-target="cargo">📦 Cargo</button>
+        </div>
+        <div class="install-body">
+          <div class="install-code">curl -fsSL https://raw.githubusercontent.com/linkd-dev/linkd/main/install.sh | bash</div>
+          <button class="copy-btn" data-copy-target=".install-code">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Terminal Simulation Preview -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <div class="terminal-dot dot-red"></div>
+            <div class="terminal-dot dot-yellow"></div>
+            <div class="terminal-dot dot-green"></div>
+          </div>
+          <div class="terminal-title">linkd terminal — bash</div>
+          <div style="width: 50px"></div>
+        </div>
+        <div class="terminal-content">
+          <div><span class="t-prompt">$</span> <span class="t-cmd">linkd link ./packages/ui-kit ./apps/web-app</span></div>
+          <div class="t-dim">ℹ Detecting ecosystem... [npm / pnpm detected]</div>
+          <div class="t-dim">ℹ Resolving target: ./apps/web-app/node_modules/@acme/ui-kit</div>
+          <div class="t-cyan">✓ Created isolated project shadow (safeguarding pnpm global store)</div>
+          <div class="t-green">✓ Link registered & synced (@acme/ui-kit → node_modules/@acme/ui-kit)</div>
+          <div class="t-purple">⚡ Started linkd background daemon (PID: 41829, socket: ~/.linkd/linkd.sock)</div>
+          <br/>
+          <div><span class="t-prompt">$</span> <span class="t-cmd">cd ./apps/web-app && pnpm install</span></div>
+          <div class="t-dim">Packages: +482</div>
+          <div class="t-dim">Progress: resolved 482, reused 482, downloaded 0, added 482, done</div>
+          <div class="t-yellow">⚡ linkd reconciler: Reinstall marker change detected (pnpm-lock.yaml)</div>
+          <div class="t-green">✓ Dev link atomically restored in 8ms without touching package.json!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem vs Solution -->
+  <section class="section" id="why">
+    <div class="container">
+      <div class="section-tag">Why linkd?</div>
+      <h2 class="section-title">Say goodbye to broken dev links.</h2>
+      <p class="section-desc">Traditional symlinks break the moment dependencies are installed. linkd introduces Kubernetes-style background reconciliation to local development.</p>
+
+      <div class="comparison-grid">
+        <div class="comp-card bad">
+          <div class="comp-badge">❌ Traditional Linking (npm link / pip -e / file:)</div>
+          <ul class="comp-list">
+            <li><span>🚫</span> <span><strong>Wiped by reinstalls:</strong> Running <code>npm install</code>, <code>composer update</code>, or <code>uv sync</code> wipes your links without warning.</span></li>
+            <li><span>🚫</span> <span><strong>Global cache risk:</strong> Tools like <code>pnpm</code> can accidentally mutate your global machine-wide store.</span></li>
+            <li><span>🚫</span> <span><strong>Dirty git diffs:</strong> <code>"file:../lib"</code> dependencies accidentally get committed to production branches.</span></li>
+            <li><span>🚫</span> <span><strong>Manual toil:</strong> Developers spend hours re-linking packages every day across monorepo workspaces.</span></li>
+          </ul>
+        </div>
+        <div class="comp-card good">
+          <div class="comp-badge">✅ With linkd Reconciler</div>
+          <ul class="comp-list">
+            <li><span>✨</span> <span><strong>Survives all reinstalls:</strong> Background daemon monitors lockfiles and instantly restores your dev files.</span></li>
+            <li><span>✨</span> <span><strong>100% Store safety:</strong> Project-local shadow copies ensure global caches remain completely pristine.</span></li>
+            <li><span>✨</span> <span><strong>Zero manifest edits:</strong> Manifests remain untouched. Zero accidental git commits.</span></li>
+            <li><span>✨</span> <span><strong>Multi-ecosystem:</strong> Seamless workflow for JS, PHP, Python, Go, Rust, Java, and custom paths.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Ecosystems -->
+  <section class="section" id="ecosystems">
+    <div class="container">
+      <div class="section-tag">Multi-Ecosystem</div>
+      <h2 class="section-title">One tool for all your polyglot projects.</h2>
+      <p class="section-desc">Natively detects manifests, virtual environments, and package managers across 7 distinct ecosystems.</p>
+
+      <div class="eco-tabs">
+        <button class="eco-btn active" data-eco="npm">🟢 JS / TS (npm/pnpm/yarn/bun)</button>
+        <button class="eco-btn" data-eco="composer">🐘 PHP (Composer)</button>
+        <button class="eco-btn" data-eco="python">🐍 Python (uv/pip/poetry)</button>
+        <button class="eco-btn" data-eco="go">🐹 Go (Modules/Vendor)</button>
+        <button class="eco-btn" data-eco="cargo">🦀 Rust (Cargo)</button>
+        <button class="eco-btn" data-eco="jvm">☕ Java & Kotlin (JVM)</button>
+        <button class="eco-btn" data-eco="custom">📁 Custom Path</button>
+      </div>
+
+      <div class="eco-panel">
+        <div class="eco-info">
+          <h3 id="eco-title">🟢 JavaScript & TypeScript</h3>
+          <p id="eco-desc">Deep integration with npm, pnpm, yarn, and bun. Automatically detects monorepo package roots, links into node_modules, and creates isolated project-local shadow directories for pnpm to prevent global store corruption.</p>
+          <ul class="eco-feature-list" id="eco-features">
+            <li><span class="t-green">✓</span> Automatic package.json name & main entry resolution</li>
+            <li><span class="t-green">✓</span> pnpm shadow isolation: never writes to ~/.pnpm-store</li>
+            <li><span class="t-green">✓</span> Watches package-lock.json, pnpm-lock.yaml, yarn.lock, and bun.lockb</li>
+            <li><span class="t-green">✓</span> Zero manifest edits: git status remains completely clean</li>
+          </ul>
+        </div>
+        <div class="eco-code-block">
+          <pre><code id="eco-code"># 1. Link your UI kit into your web app
+linkd link ./packages/ui-kit ./apps/web-app
+
+# Reconciler automatically links:
+# ./packages/ui-kit → ./apps/web-app/node_modules/@acme/ui-kit
+
+# Run installs without breaking links!
+cd ./apps/web-app && pnpm install</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive TUI Monitor Preview -->
+  <section class="section" id="monitor">
+    <div class="container">
+      <div class="section-tag">Interactive TUI</div>
+      <h2 class="section-title">Live Terminal Monitor Dashboard</h2>
+      <p class="section-desc">Run <code>linkd monitor</code> or <code>linkd top</code> to inspect active links, stream live IPC sync logs, force re-syncs, and toggle pause/resume in real-time.</p>
+
+      <div class="tui-sim-container">
+        <div class="tui-nav-bar">
+          <div><span class="t-cyan">⚡ linkd monitor</span> — <span class="t-dim">Connected to daemon (PID: 41829)</span></div>
+          <div><span class="t-green">● IPC Streaming: Active</span></div>
+        </div>
+        <div class="tui-grid">
+          <div class="tui-left-col">
+            <div class="tui-panel-header">ACTIVE LINKS (Click to inspect)</div>
+            <div class="tui-links-list" id="tui-links-list">
+              <!-- Rendered via app.js -->
+            </div>
+            <div class="tui-inspector" id="tui-inspector-content">
+              <!-- Rendered via app.js -->
+            </div>
+          </div>
+          <div class="tui-logs-col" id="tui-logs-content">
+            <div class="t-dim">[00:30:12] Subscribed to daemon broadcast stream</div>
+            <div><span class="t-dim">[00:30:13]</span> <span class="t-green">✓ Link '@acme/ui-kit' synced (42 files, copy)</span></div>
+            <div><span class="t-dim">[00:30:14]</span> <span class="t-green">✓ Link 'acme/logger' synced (14 files, copy)</span></div>
+            <div><span class="t-dim">[00:30:15]</span> <span class="t-cyan">ℹ Watching lockfiles for reinstall events</span></div>
+          </div>
+        </div>
+        <div class="tui-footer">
+          <div><span class="t-key">r</span> Force Sync</div>
+          <div><span class="t-key">Space</span> Pause/Resume</div>
+          <div><span class="t-key">c</span> Clear Logs</div>
+          <div><span class="t-key">u</span> Unlink</div>
+          <div><span class="t-key">q</span> Quit</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section">
+    <div class="container">
+      <div class="section-tag">Engineering Highlights</div>
+      <h2 class="section-title">Built with Rust for speed & resilience.</h2>
+      <p class="section-desc">Designed with rock-solid safety guarantees for mission-critical developer environments.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h4>Global Store Safeguard</h4>
+          <p>Strict safety gates block any sync operations from writing into global caches like <code>~/.pnpm-store</code>, redirecting to local shadow copies.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h4>Atomic Directory Swaps</h4>
+          <p>Sync operations write to temporary staging roots and swap atomically via filesystem renames, eliminating transient build failures.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔁</div>
+          <h4>Watch-Loop Prevention</h4>
+          <p>Hierarchical path validation guards against circular watching when syncing nested, monorepo, or parent/child directory trees.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏷️</div>
+          <h4>Marker Provenance</h4>
+          <p>Every synced folder is sealed with a <code>.linkd-marker.json</code> manifest ensuring linkd never overwrites or deletes untracked developer files.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h4>Cross-Platform IPC</h4>
+          <p>Seamless Unix Domain Sockets on Linux/macOS and Named Pipes on Windows provide high-performance, non-blocking daemon communication.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧙</div>
+          <h4>Dual Setup Wizards</h4>
+          <p>Choose between full-screen guided TUI wizards (<code>linkd wizard</code>) and lightning-fast inline prompt wizards (<code>linkd init</code>).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI Command Reference -->
+  <section class="section" id="cli">
+    <div class="container">
+      <div class="section-tag">Cheatsheet</div>
+      <h2 class="section-title">Complete CLI Command Reference</h2>
+      <p class="section-desc">Search and explore all commands, options, and workflows.</p>
+
+      <input type="text" id="cli-filter" class="cli-search" placeholder="🔍 Filter commands (e.g. link, monitor, stop, doctor)...">
+
+      <table class="cli-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Arguments / Flags</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>linkd link</code></td>
+            <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
+            <td>Registers and syncs a local package into a consumer project with auto-daemon start.</td>
+          </tr>
+          <tr>
+            <td><code>linkd unlink</code></td>
+            <td><code>&lt;target|name|source&gt;</code></td>
+            <td>Removes an active link and safely cleans up marker files.</td>
+          </tr>
+          <tr>
+            <td><code>linkd list</code></td>
+            <td><em>none</em></td>
+            <td>Displays a table of all registered links, health status, and target paths.</td>
+          </tr>
+          <tr>
+            <td><code>linkd monitor</code></td>
+            <td><code>[--start]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
+            <td>Launches full-screen interactive Ratatui TUI dashboard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd start</code></td>
+            <td><em>none</em></td>
+            <td>Starts the background linkd daemon (detached cross-platform process).</td>
+          </tr>
+          <tr>
+            <td><code>linkd stop</code></td>
+            <td><code>[--force]</code></td>
+            <td>Gracefully shuts down the running background daemon.</td>
+          </tr>
+          <tr>
+            <td><code>linkd watch</code></td>
+            <td><em>none</em></td>
+            <td>Runs the daemon in foreground with live terminal output.</td>
+          </tr>
+          <tr>
+            <td><code>linkd status</code></td>
+            <td><code>[--json]</code></td>
+            <td>Returns a one-shot snapshot of daemon PID and active link metrics.</td>
+          </tr>
+          <tr>
+            <td><code>linkd doctor</code></td>
+            <td><code>[--explain &lt;topic&gt;]</code></td>
+            <td>Runs comprehensive environment diagnostics (pnpm-store, composer, python, go, cargo, jvm).</td>
+          </tr>
+          <tr>
+            <td><code>linkd logs</code></td>
+            <td><code>[-f|--follow]</code></td>
+            <td>Tails structured daemon log output.</td>
+          </tr>
+          <tr>
+            <td><code>linkd wizard</code></td>
+            <td><em>none</em></td>
+            <td>Runs full-screen interactive 5-step guided setup wizard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd init</code></td>
+            <td><em>none</em></td>
+            <td>Runs quick prompt-based setup wizard in terminal.</td>
+          </tr>
+          <tr>
+            <td><code>linkd completions</code></td>
+            <td><code>&lt;bash|zsh|fish|powershell|elvish&gt;</code></td>
+            <td>Generates shell completion scripts.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Architecture Diagram -->
+  <section class="section" id="architecture">
+    <div class="container">
+      <div class="section-tag">Under The Hood</div>
+      <h2 class="section-title">Reconciliation Loop Architecture</h2>
+      <p class="section-desc">How linkd continuously keeps your state in sync without eating CPU or corrupting stores.</p>
+
+      <div class="eco-code-block" style="font-size: 0.88rem; line-height: 1.6; color: var(--fg-default)">
+        <pre>
+┌────────────────────────────────────────────────────────────────────────┐
+│                        ~/.linkd/registry.json                          │
+│                          (Global State Store)                          │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                         ┌──────────▼──────────┐
+                         │    linkd daemon     │
+                         │ (Background Engine) │
+                         └──────────┬──────────┘
+                                    │
+       ┌────────────────────────────┼────────────────────────────┐
+       │ (File Watchers)            │ (Reconciliation Engine)    │ (IPC Server)
+       ▼                            ▼                            ▼
+  Source Changes             Reinstall Event               Live Dashboard
+  - Debounced sync           - Lockfile markers            - Subscriptions
+  - Cache filter             - Atomic directory swap       - Pause/Resume
+       │                            │
+       └────────────────────────────┴────────────────────────────┐
+                                                                 ▼
+                                                  Target Project (.linkd-marker)
+                                                  - node_modules/&lt;pkg&gt;
+                                                  - vendor/&lt;pkg&gt;
+                                                  - .venv/Lib/site-packages/&lt;pkg&gt;
+        </pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <ul class="footer-links">
+        <li><a href="https://github.com/linkd-dev/linkd">GitHub</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd/releases">Releases</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd/tree/main/docs/adr">Architecture Decisions (ADRs)</a></li>
+        <li><a href="https://github.com/linkd-dev/linkd/blob/main/LICENSE">MIT License</a></li>
+      </ul>
+      <p>© 2026 linkd contributors. Open source under the MIT License.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
