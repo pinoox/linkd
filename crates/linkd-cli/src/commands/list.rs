@@ -30,7 +30,7 @@ pub async fn run() -> anyhow::Result<()> {
         println!(
             "  🔗 {} → {} ({:?}) {}",
             link.package_name,
-            link.consumer_root.display(),
+            linkd_core::display_path(&link.consumer_root),
             link.strategy,
             status
         );

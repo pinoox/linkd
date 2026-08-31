@@ -1,65 +1,77 @@
+use std::path::PathBuf;
+
+use crossterm::style::Stylize;
 use inquire::{Confirm, Select, Text};
-use linkd_core::Ecosystem;
+use linkd_core::{clean_path, display_path, normalize_path, Ecosystem};
 
 pub async fn run() -> anyhow::Result<()> {
-    println!("linkd init — quick setup\n");
+    println!();
+    println!("  {} {}", "⚡ linkd init".cyan().bold(), "— Interactive Setup".dark_grey());
+    println!();
 
     let link_type = Select::new(
-        "Link type:",
+        "Select package ecosystem:",
         vec![
-            "npm package",
-            "composer package",
-            "python (uv/pip/poetry)",
-            "go module",
-            "rust (cargo)",
-            "java/kotlin (jvm)",
-            "custom path",
+            "JavaScript / TypeScript (npm, pnpm, yarn, bun)",
+            "PHP (Composer)",
+            "Python (uv, pip, poetry)",
+            "Go (go.mod / vendor)",
+            "Rust (Cargo / vendor)",
+            "Java / Kotlin (JVM)",
+            "Custom target directory",
         ],
     )
     .prompt()?;
 
-    let source = Text::new("Source package directory:")
-        .with_default("./packages/my-lib")
-        .prompt()?;
-
-    let consumer = Text::new("Consumer project directory:")
-        .with_default("../my-app")
-        .prompt()?;
-
     let (target, ecosystem) = match link_type {
-        "custom path" => {
+        "Custom target directory" => {
             let target = Text::new("Sync target path (inside consumer):")
                 .with_default("./lib/shared")
                 .prompt()?;
-            (Some(target.into()), Some(Ecosystem::Custom))
+            (Some(PathBuf::from(target)), Some(Ecosystem::Custom))
         }
-        "composer package" => (None, Some(Ecosystem::Composer)),
-        "python (uv/pip/poetry)" => (None, Some(Ecosystem::Python)),
-        "go module" => (None, Some(Ecosystem::Go)),
-        "rust (cargo)" => (None, Some(Ecosystem::Cargo)),
-        "java/kotlin (jvm)" => (None, Some(Ecosystem::Jvm)),
+        "PHP (Composer)" => (None, Some(Ecosystem::Composer)),
+        "Python (uv, pip, poetry)" => (None, Some(Ecosystem::Python)),
+        "Go (go.mod / vendor)" => (None, Some(Ecosystem::Go)),
+        "Rust (Cargo / vendor)" => (None, Some(Ecosystem::Cargo)),
+        "Java / Kotlin (JVM)" => (None, Some(Ecosystem::Jvm)),
         _ => (None, Some(Ecosystem::Npm)),
     };
 
-    #[cfg(target_os = "macos")]
-    let strategy_hint = "reflink (APFS)";
-    #[cfg(not(target_os = "macos"))]
-    let strategy_hint = "copy";
+    let source_raw = Text::new("Source package directory:")
+        .with_default("./packages/my-lib")
+        .prompt()?;
+    let source_path = clean_path(&normalize_path(&PathBuf::from(source_raw)));
 
-    println!("✓ Suggested sync strategy: {strategy_hint}");
+    let consumer_raw = Text::new("Consumer project directory:")
+        .with_default(".")
+        .prompt()?;
+    let consumer_path = clean_path(&normalize_path(&PathBuf::from(consumer_raw)));
+
+    println!();
+    println!("  {} {}", "Source  :".white().bold(), display_path(&source_path).cyan());
+    println!("  {} {}", "Consumer:".white().bold(), display_path(&consumer_path).cyan());
+
+    #[cfg(target_os = "macos")]
+    let strategy_hint = "reflink (APFS CoW)";
+    #[cfg(not(target_os = "macos"))]
+    let strategy_hint = "copy (atomic CoW/clone)";
+
+    println!("  {} {}", "Strategy:".white().bold(), strategy_hint.green());
+    println!();
 
     let start_daemon = Confirm::new("Start background daemon after linking?")
         .with_default(true)
         .prompt()?;
 
-    let proceed = Confirm::new("Create link now?")
+    let proceed = Confirm::new("Create and synchronize link now?")
         .with_default(true)
         .prompt()?;
 
     if proceed {
         super::link::run(
-            source.into(),
-            consumer.into(),
+            source_path,
+            consumer_path,
             target,
             ecosystem,
             false,

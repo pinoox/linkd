@@ -297,31 +297,40 @@
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
       <h2 id="quickstart">⚡ Quickstart Tutorial</h2>
-      <p>Follow this 3-minute tutorial to link your first local package:</p>
+      <p><code>linkd</code> offers two powerful workflows designed for modern monorepos and local package development:</p>
 
-      <h3>Step 1: Link your package</h3>
-      <p>Point to your library source and your consumer project. <code>linkd</code> auto-detects the ecosystem, calculates target paths, and starts the background daemon automatically:</p>
+      <h3>Workflow 1: Global Package Workflow (2-Step, Recommended)</h3>
+      <p>Register a package once globally, then link it into any project with a single command:</p>
+
       <div class="code-wrapper">
-        <div class="code-header"><span>Command</span></div>
-        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd link ./packages/my-lib ./apps/my-app</span>
-<span class="t-cyan">ℹ Detected ecosystem: npm (pnpm detected)</span>
-<span class="t-green">✓ Synced my-lib → ./apps/my-app/node_modules/my-lib</span>
-<span class="t-purple">⚡ Started linkd background daemon (PID: 28419)</span></code></pre>
+        <div class="code-header"><span>Terminal (Inside Package Folder)</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">cd packages/my-ui-kit</span>
+<span class="t-prompt">$</span> <span class="t-cmd">linkd register</span>
+<span class="t-green">✓ Registered reusable package: @acme/ui-kit</span>
+<span class="t-cyan">  Usage: run `linkd use @acme/ui-kit` in any consumer project directory.</span></code></pre>
       </div>
 
-      <h3>Step 2: Inspect real-time status in Live TUI Monitor</h3>
-      <div class="code-wrapper">
-        <div class="code-header"><span>Command</span></div>
-        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd monitor</span></code></pre>
-      </div>
-      <p>This opens a full-screen Ratatui terminal dashboard. You can watch real-time file updates, IPC sync events, force immediate syncs with <kbd>r</kbd>, or pause links with <kbd>Space</kbd>.</p>
+      <div class="code-wrapper" style="margin-top: 12px">
+        <div class="code-header"><span>Terminal (Inside Consumer Apps)</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">cd apps/web-app</span>
+<span class="t-prompt">$</span> <span class="t-cmd">linkd use @acme/ui-kit</span>
+<span class="t-green">✓ Linked @acme/ui-kit → ./apps/web-app</span>
+<span class="t-cyan">  sync target: ./apps/web-app/node_modules/@acme/ui-kit</span>
 
-      <h3>Step 3: Unlink when you are done</h3>
+<span class="t-prompt">$</span> <span class="t-cmd">cd ../mobile-app && linkd use @acme/ui-kit</span>
+<span class="t-green">✓ Linked @acme/ui-kit → ./apps/mobile-app</span></code></pre>
+      </div>
+
+      <h3>Workflow 2: Direct Path Linking</h3>
+      <p>Point directly to your library source and consumer app:</p>
       <div class="code-wrapper">
         <div class="code-header"><span>Command</span></div>
-        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd unlink my-lib</span>
-<span class="t-green">✓ Link 'my-lib' removed from registry.</span></code></pre>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd link ./packages/my-ui-kit ./apps/web-app</span>
+<span class="t-green">✓ Linked @acme/ui-kit → ./apps/web-app</span></code></pre>
       </div>
+
+      <h3>🔄 Multi-Consumer Real-Time Syncing</h3>
+      <p>When one package is linked into multiple apps (e.g. Web, Mobile, Desktop), changing a single file in the package automatically synchronizes all consumer apps in real time in parallel!</p>
 
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
@@ -614,9 +623,29 @@ WantedBy=default.target</code></pre>
         </thead>
         <tbody>
           <tr>
+            <td><code>linkd register</code></td>
+            <td><code>[path] [--name &lt;name&gt;] [--ecosystem &lt;type&gt;]</code> <em>(aliases: <code>pin</code>, <code>add</code>)</em></td>
+            <td>Register current package globally for reuse across multiple projects.</td>
+          </tr>
+          <tr>
+            <td><code>linkd use</code></td>
+            <td><code>&lt;package&gt; [consumer] [--target &lt;path&gt;]</code> <em>(aliases: <code>on</code>, <code>attach</code>)</em></td>
+            <td>Link a globally registered package into the current/specified project.</td>
+          </tr>
+          <tr>
+            <td><code>linkd packages</code></td>
+            <td><em>none</em> <em>(alias: <code>pinned</code>)</em></td>
+            <td>List all globally registered reusable packages.</td>
+          </tr>
+          <tr>
+            <td><code>linkd unregister</code></td>
+            <td><code>&lt;package&gt;</code> <em>(alias: <code>unpin</code>)</em></td>
+            <td>Remove package from global registry.</td>
+          </tr>
+          <tr>
             <td><code>linkd link</code></td>
             <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
-            <td>Register and sync local package into consumer.</td>
+            <td>Directly register and sync local package into consumer.</td>
           </tr>
           <tr>
             <td><code>linkd unlink</code></td>
@@ -632,6 +661,11 @@ WantedBy=default.target</code></pre>
             <td><code>linkd monitor</code></td>
             <td><code>[--start]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
             <td>Launch full-screen Ratatui TUI dashboard.</td>
+          </tr>
+          <tr>
+            <td><code>linkd init</code></td>
+            <td><em>none</em> <em>(alias: <code>wizard</code>)</em></td>
+            <td>Interactive guided setup wizard.</td>
           </tr>
           <tr>
             <td><code>linkd start</code></td>
@@ -664,14 +698,9 @@ WantedBy=default.target</code></pre>
             <td>Tail background daemon logs.</td>
           </tr>
           <tr>
-            <td><code>linkd wizard</code></td>
-            <td><em>none</em></td>
-            <td>Full-screen 5-step guided wizard.</td>
-          </tr>
-          <tr>
-            <td><code>linkd init</code></td>
-            <td><em>none</em></td>
-            <td>Inline prompt-based setup wizard.</td>
+            <td><code>linkd version</code></td>
+            <td><code>[-v, --json]</code></td>
+            <td>Print version, target OS, architecture, and supported ecosystems.</td>
           </tr>
           <tr>
             <td><code>linkd completions</code></td>

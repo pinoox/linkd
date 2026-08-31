@@ -29,7 +29,7 @@ pub async fn run(json: bool) -> anyhow::Result<()> {
                     println!(
                         "- {} → {} [{:?}] ({:?})",
                         link.package_name,
-                        link.consumer_root.display(),
+                        linkd_core::display_path(&link.consumer_root),
                         link.ecosystem,
                         link.last_sync_status
                     );
@@ -62,7 +62,7 @@ pub async fn run(json: bool) -> anyhow::Result<()> {
             println!(
                 "- {} → {} [{:?}] (registry only)",
                 link.package_name,
-                link.consumer_root.display(),
+                linkd_core::display_path(&link.consumer_root),
                 link.last_sync_status
             );
         }

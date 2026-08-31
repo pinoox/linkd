@@ -65,19 +65,21 @@ impl IpcClient {
 
         #[cfg(windows)]
         {
-            use tokio::io::{AsyncReadExt, AsyncWriteExt};
-            let mut pipe = self.connect().await?;
+            use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+            let pipe = self.connect().await?;
+            let (reader, mut writer) = tokio::io::split(pipe);
             let payload = encode_line(&req).map_err(|e| LinkdError::Other(e.to_string()))?;
-            pipe.write_all(payload.as_bytes())
+            writer
+                .write_all(payload.as_bytes())
                 .await
                 .map_err(|e| LinkdError::Other(e.to_string()))?;
 
-            let mut buf = vec![0u8; 65536];
-            let n = pipe
-                .read(&mut buf)
+            let mut reader = BufReader::new(reader);
+            let mut line = String::new();
+            reader
+                .read_line(&mut line)
                 .await
                 .map_err(|e| LinkdError::Other(e.to_string()))?;
-            let line = String::from_utf8_lossy(&buf[..n]);
             decode_line(&line).map_err(|e| LinkdError::Other(e.to_string()))
         }
     }

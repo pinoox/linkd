@@ -26,14 +26,25 @@ pub async fn run(
         eprint!("{}", warn.display());
     }
 
-    let source = source.canonicalize().unwrap_or(source);
-    let consumer = consumer.canonicalize().unwrap_or(consumer);
+    let (source, auto_pkg_name) = if !source.exists() {
+        let source_str = source.to_string_lossy();
+        if let Ok(Some(pinned)) = linkd_registry::PinnedStore::default().get(&source_str) {
+            (pinned.path, Some(pinned.name))
+        } else {
+            (linkd_core::normalize_path(&source), None)
+        }
+    } else {
+        (linkd_core::normalize_path(&source), None)
+    };
+
+    let consumer = linkd_core::normalize_path(&consumer);
 
     let custom_target = target.as_deref();
     let resolved = print_result(resolve_link(&source, &consumer, ecosystem, custom_target))?;
+    let package_name = auto_pkg_name.unwrap_or(resolved.package_name);
 
     let entry = Registry::new_link(NewLinkParams {
-        package_name: resolved.package_name.clone(),
+        package_name: package_name.clone(),
         source_path: source,
         consumer_root: consumer.clone(),
         sync_target: resolved.sync_target.clone(),
@@ -57,7 +68,7 @@ pub async fn run(
             print_result(client.add_link(entry.clone()).await)?;
             print_result(client.trigger_reconcile(Some(entry.id)).await)?;
             print_result_sync_message(
-                &resolved.package_name,
+                &package_name,
                 &consumer,
                 &resolved.sync_target,
                 resolved.detected_pm.as_deref(),
@@ -70,7 +81,7 @@ pub async fn run(
     let daemon = DaemonService::new(store);
     print_result(daemon.reconciler().reconcile_link(entry.id))?;
     print_result_sync_message(
-        &resolved.package_name,
+        &package_name,
         &consumer,
         &resolved.sync_target,
         resolved.detected_pm.as_deref(),
@@ -87,8 +98,14 @@ fn print_result_sync_message(
     sync_target: &Path,
     detected_pm: Option<&str>,
 ) {
-    println!("✓ Linked {package_name} → {}", consumer.display());
-    println!("  sync target: {}", sync_target.display());
+    println!(
+        "✓ Linked {package_name} → {}",
+        linkd_core::display_path(consumer)
+    );
+    println!(
+        "  sync target: {}",
+        linkd_core::display_path(sync_target)
+    );
     if let Some(pm) = detected_pm {
         println!("  detected: {pm}");
     }

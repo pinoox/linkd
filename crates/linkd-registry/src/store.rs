@@ -102,14 +102,16 @@ impl RegistryStore {
 
     pub fn add_link(&self, entry: linkd_core::LinkEntry) -> LinkdResult<linkd_core::LinkEntry> {
         self.with_mut(|reg| {
-            if let Some(existing) = Registry::find_by_package(&reg.links, &entry.package_name) {
-                if existing.consumer_root == entry.consumer_root {
-                    return Err(LinkdError::Other(format!(
-                        "link already exists for {} in {}",
-                        entry.package_name,
-                        entry.consumer_root.display()
-                    )));
-                }
+            if reg
+                .links
+                .iter()
+                .any(|l| l.package_name == entry.package_name && l.consumer_root == entry.consumer_root)
+            {
+                return Err(LinkdError::Other(format!(
+                    "link already exists for {} in {}",
+                    entry.package_name,
+                    linkd_core::display_path(&entry.consumer_root)
+                )));
             }
             reg.links.push(entry.clone());
             Ok(entry)
@@ -118,6 +120,27 @@ impl RegistryStore {
 
     pub fn remove_link(&self, package_name: &str) -> LinkdResult<Option<linkd_core::LinkEntry>> {
         self.with_mut(|reg| Ok(Registry::remove_by_package(&mut reg.links, package_name)))
+    }
+
+    pub fn remove_links_matching(
+        &self,
+        package_name: &str,
+        consumer_root: Option<&Path>,
+    ) -> LinkdResult<Vec<linkd_core::LinkEntry>> {
+        self.with_mut(|reg| {
+            let mut removed = Vec::new();
+            reg.links.retain(|l| {
+                let matches_pkg = l.package_name == package_name;
+                let matches_consumer = consumer_root.map(|c| l.consumer_root == c).unwrap_or(true);
+                if matches_pkg && matches_consumer {
+                    removed.push(l.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            Ok(removed)
+        })
     }
 
     pub fn update_link(

@@ -73,6 +73,41 @@ enum Commands {
         #[arg(long)]
         no_daemon: bool,
     },
+    /// Register the current package directory globally for easy reuse
+    #[command(alias = "pin", alias = "add", alias = "publish")]
+    Register {
+        #[arg(default_value = ".")]
+        path: std::path::PathBuf,
+        #[arg(long)]
+        name: Option<String>,
+        #[arg(long, value_enum)]
+        ecosystem: Option<EcosystemArg>,
+    },
+    /// Link a globally registered package into the current project
+    #[command(alias = "on", alias = "attach")]
+    Use {
+        package_name: String,
+        #[arg(default_value = ".")]
+        consumer: std::path::PathBuf,
+        #[arg(long)]
+        target: Option<std::path::PathBuf>,
+        #[arg(long, value_enum)]
+        ecosystem: Option<EcosystemArg>,
+        #[arg(long)]
+        copy: bool,
+        #[arg(long)]
+        hardlink: bool,
+        #[arg(long)]
+        link: bool,
+        #[arg(long)]
+        no_daemon: bool,
+    },
+    /// List all globally registered packages
+    #[command(alias = "pinned")]
+    Packages,
+    /// Unregister a globally registered package
+    #[command(alias = "unpin")]
+    Unregister { package_name: String },
     /// Remove an active link
     Unlink { target: String },
     /// List active links
@@ -107,10 +142,9 @@ enum Commands {
         #[arg(long)]
         start: bool,
     },
-    /// Interactive quick setup wizard
+    /// Interactive guided setup wizard
+    #[command(alias = "wizard")]
     Init,
-    /// Full-screen setup wizard
-    Wizard,
     /// Generate shell completions
     Completions {
         #[arg(value_enum)]
@@ -163,6 +197,35 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         }
+        Commands::Register {
+            path,
+            name,
+            ecosystem,
+        } => commands::pin::run(Some(path), name, ecosystem.map(Into::into)).await,
+        Commands::Use {
+            package_name,
+            consumer,
+            target,
+            ecosystem,
+            copy,
+            hardlink,
+            link,
+            no_daemon,
+        } => {
+            commands::use_pkg::run(
+                package_name,
+                Some(consumer),
+                target,
+                ecosystem.map(Into::into),
+                copy,
+                hardlink,
+                link,
+                no_daemon,
+            )
+            .await
+        }
+        Commands::Packages => commands::packages::run().await,
+        Commands::Unregister { package_name } => commands::unpin::run(&package_name).await,
         Commands::Unlink { target } => commands::unlink::run(&target).await,
         Commands::List => commands::list::run().await,
         Commands::Start => commands::start::run().await,
@@ -173,7 +236,6 @@ async fn main() -> anyhow::Result<()> {
         Commands::Logs { follow } => commands::logs::run(follow).await,
         Commands::Monitor { start } => commands::monitor::run(start).await,
         Commands::Init => commands::init::run().await,
-        Commands::Wizard => commands::wizard::run().await,
         Commands::Version { json } => {
             if json {
                 let info = serde_json::json!({

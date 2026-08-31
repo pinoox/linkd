@@ -79,25 +79,22 @@ pub async fn stop_daemon(force: bool) -> LinkdResult<()> {
         None => return Ok(()),
     };
 
-    if let Ok(client) = linkd_ipc::IpcClient::new() {
-        if client.shutdown().await.is_ok() {
-            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-            if !is_linkd_process(pid_file.pid) {
-                DaemonPidFile::remove()?;
-                return Ok(());
+    if !force {
+        if let Ok(client) = linkd_ipc::IpcClient::new() {
+            if client.shutdown().await.is_ok() {
+                for _ in 0..10 {
+                    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+                    if !is_linkd_process(pid_file.pid) {
+                        DaemonPidFile::remove()?;
+                        return Ok(());
+                    }
+                }
             }
         }
     }
 
-    if force || !is_linkd_process(pid_file.pid) {
-        kill_process(pid_file.pid);
-        DaemonPidFile::remove()?;
-    } else if !force {
-        return Err(linkd_core::LinkdError::Other(
-            "daemon did not stop gracefully; use --force".into(),
-        ));
-    }
-
+    kill_process(pid_file.pid);
+    let _ = DaemonPidFile::remove();
     Ok(())
 }
 

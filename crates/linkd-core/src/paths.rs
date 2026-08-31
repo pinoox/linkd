@@ -75,6 +75,32 @@ pub fn is_ci() -> bool {
         .unwrap_or(false)
 }
 
+pub fn pinned_packages_path() -> PathBuf {
+    linkd_home().join("packages.json")
+}
+
+pub fn clean_path(path: &Path) -> PathBuf {
+    #[cfg(windows)]
+    {
+        let s = path.to_string_lossy();
+        if let Some(stripped) = s.strip_prefix(r"\\?\UNC\") {
+            PathBuf::from(format!(r"\\{}", stripped))
+        } else if let Some(stripped) = s.strip_prefix(r"\\?\") {
+            PathBuf::from(stripped)
+        } else {
+            path.to_path_buf()
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        path.to_path_buf()
+    }
+}
+
+pub fn display_path(path: &Path) -> String {
+    clean_path(path).to_string_lossy().to_string()
+}
+
 pub fn normalize_path(path: &Path) -> PathBuf {
     let abs = if path.is_absolute() {
         path.to_path_buf()
@@ -109,24 +135,7 @@ pub fn normalize_path(path: &Path) -> PathBuf {
         }
     });
 
-    clean_unc_prefix(canonical)
-}
-
-#[cfg(windows)]
-fn clean_unc_prefix(path: PathBuf) -> PathBuf {
-    let s = path.to_string_lossy();
-    if let Some(stripped) = s.strip_prefix(r"\\?\UNC\") {
-        PathBuf::from(format!(r"\\{}", stripped))
-    } else if let Some(stripped) = s.strip_prefix(r"\\?\") {
-        PathBuf::from(stripped)
-    } else {
-        path
-    }
-}
-
-#[cfg(not(windows))]
-fn clean_unc_prefix(path: PathBuf) -> PathBuf {
-    path
+    clean_path(&canonical)
 }
 
 #[cfg(unix)]

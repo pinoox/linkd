@@ -45,7 +45,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Custom Directories (`linkd-adapters-custom`)**:
   - Framework-agnostic linking for arbitrary asset directories and internal libraries via `--target`.
 
-#### 2. Continuous Reconciliation Engine (`linkd-sync` & `linkd-watcher`)
+#### 2. Global Package Store & Multi-Consumer Workflows
+- **Global Package Registration (`linkd register` / `linkd pin` / `linkd add`)**:
+  - Register any local library once globally into `~/.linkd/packages.json`.
+- **Global Package Consumer Attachment (`linkd use <package>` / `linkd on <package>`)**:
+  - Connect a registered package into any consumer application with a single command without remembering directory paths.
+- **Package Management (`linkd packages` & `linkd unregister`)**:
+  - List and unregister globally pinned libraries.
+- **Multi-Consumer Live Reconciliation**:
+  - Connect 1 library to multiple distinct consumer applications simultaneously. Editing 1 file in the library reconciles all attached consumers in parallel.
+- **Windows Path Normalization**:
+  - Completely strips verbatim `\\?\` and `\\?\UNC\` prefixes across all commands, interactive prompts, and status tables.
+
+#### 3. Continuous Reconciliation Engine (`linkd-sync` & `linkd-watcher`)
 - **State Machine & Loop**: Reconciles desired state in `~/.linkd/registry.json` against filesystem reality.
 - **Atomic Swapping**: Synchronizes changes to a temporary staging root and performs atomic directory swaps via filesystem renames to prevent build tool race conditions.
 - **Reflink Copy Acceleration**: Leverages `reflink-copy` for instant copy-on-write file cloning on APFS, Btrfs, XFS, and ReFS.

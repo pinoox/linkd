@@ -191,62 +191,65 @@ impl IpcServer {
     #[cfg(windows)]
     async fn handle_connection_windows(
         &self,
-        mut pipe: tokio::net::windows::named_pipe::NamedPipeServer,
+        pipe: tokio::net::windows::named_pipe::NamedPipeServer,
     ) -> LinkdResult<()> {
-        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
-        let mut buf = vec![0u8; 65536];
-        let n = pipe
-            .read(&mut buf)
+        let (reader, mut writer) = tokio::io::split(pipe);
+        let mut lines = BufReader::new(reader).lines();
+
+        while let Some(line) = lines
+            .next_line()
             .await
-            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
-        let line = String::from_utf8_lossy(&buf[..n]);
-
-        let req_res: Result<IpcRequest, _> = decode_line(&line);
-        if let Ok(IpcRequest::SubscribeEvents { auth_token }) = req_res {
-            if let Err(e) = verify_auth_token(&auth_token) {
-                let resp = IpcResponse::err(e.to_string());
-                let payload =
-                    encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
-                let _ = pipe.write_all(payload.as_bytes()).await;
-                return Ok(());
-            }
-
-            if let Some(events_tx) = &self.events_tx {
-                let mut rx = events_tx.subscribe();
-                if let Ok(reg) = self.registry.load() {
-                    let hint = self.pm_hint.lock().await.clone();
-                    let initial = DaemonEvent::Snapshot {
-                        snapshot: LinkStatusSnapshot {
-                            links: reg.links,
-                            daemon_running: true,
-                            pm_install_hint: hint,
-                        },
-                    };
-                    let payload = encode_line(&initial)
+            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?
+        {
+            let req_res: Result<IpcRequest, _> = decode_line(&line);
+            if let Ok(IpcRequest::SubscribeEvents { auth_token }) = req_res {
+                if let Err(e) = verify_auth_token(&auth_token) {
+                    let resp = IpcResponse::err(e.to_string());
+                    let payload = encode_line(&resp)
                         .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
-                    if pipe.write_all(payload.as_bytes()).await.is_err() {
-                        return Ok(());
-                    }
+                    let _ = writer.write_all(payload.as_bytes()).await;
+                    return Ok(());
                 }
 
-                while let Ok(event) = rx.recv().await {
-                    let payload = encode_line(&event)
-                        .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
-                    if pipe.write_all(payload.as_bytes()).await.is_err() {
-                        break;
+                if let Some(events_tx) = &self.events_tx {
+                    let mut rx = events_tx.subscribe();
+                    if let Ok(reg) = self.registry.load() {
+                        let hint = self.pm_hint.lock().await.clone();
+                        let initial = DaemonEvent::Snapshot {
+                            snapshot: LinkStatusSnapshot {
+                                links: reg.links,
+                                daemon_running: true,
+                                pm_install_hint: hint,
+                            },
+                        };
+                        let payload = encode_line(&initial)
+                            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                        if writer.write_all(payload.as_bytes()).await.is_err() {
+                            return Ok(());
+                        }
                     }
+
+                    while let Ok(event) = rx.recv().await {
+                        let payload = encode_line(&event)
+                            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+                        if writer.write_all(payload.as_bytes()).await.is_err() {
+                            break;
+                        }
+                    }
+                    return Ok(());
                 }
-                return Ok(());
             }
+
+            let resp = self.dispatch_line(&line).await;
+            let payload =
+                encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+            writer
+                .write_all(payload.as_bytes())
+                .await
+                .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
         }
-
-        let resp = self.dispatch_line(&line).await;
-        let payload =
-            encode_line(&resp).map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
-        pipe.write_all(payload.as_bytes())
-            .await
-            .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
         Ok(())
     }
 
