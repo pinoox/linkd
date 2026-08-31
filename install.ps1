@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$Repo = "linkd-dev/linkd"
+$Repo = "pinoox/linkd"
 $Target = "x86_64-pc-windows-msvc"
 $InstallDir = "$HOME\.linkd\bin"
 

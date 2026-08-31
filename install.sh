@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="linkd-dev/linkd"
+REPO="pinoox/linkd"
 INSTALL_DIR="${LINKD_INSTALL_DIR:-$HOME/.linkd/bin}"
 SYSTEM_DIR="/usr/local/bin"
 

@@ -12,8 +12,8 @@ function initInstallTabs() {
   const codeElem = document.querySelector('.install-code');
 
   const commands = {
-    bash: 'curl -fsSL https://raw.githubusercontent.com/linkd-dev/linkd/main/install.sh | bash',
-    powershell: 'irm https://raw.githubusercontent.com/linkd-dev/linkd/main/install.ps1 | iex',
+    bash: 'curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/main/install.sh | bash',
+    powershell: 'irm https://raw.githubusercontent.com/pinoox/linkd/main/install.ps1 | iex',
     cargo: 'cargo install --path crates/linkd-cli --locked'
   };
 

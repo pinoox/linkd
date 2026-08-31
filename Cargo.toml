@@ -24,7 +24,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 authors = ["linkd contributors"]
-repository = "https://github.com/linkd-dev/linkd"
+repository = "https://github.com/pinoox/linkd"
 
 [workspace.dependencies]
 anyhow = "1"

@@ -5,10 +5,10 @@
 **The local-dev link daemon for modern multi-ecosystem monorepos & packages.**  
 *Continuous reconciliation that keeps your local dependencies synced across reinstalls without editing manifest files.*
 
-[![CI](https://github.com/linkd-dev/linkd/actions/workflows/ci.yml/badge.svg)](https://github.com/linkd-dev/linkd/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/linkd-dev/linkd?color=blue&logo=github)](https://github.com/linkd-dev/linkd/releases)
+[![CI](https://github.com/pinoox/linkd/actions/workflows/ci.yml/badge.svg)](https://github.com/pinoox/linkd/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/pinoox/linkd?color=blue&logo=github)](https://github.com/pinoox/linkd/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/linkd-dev/linkd/releases)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/pinoox/linkd/releases)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
 
 <br/>
@@ -43,7 +43,7 @@
   - [6. Custom Directory](#6-custom-directory-framework-agnostic)
 - [🖥️ Interactive Terminal UIs](#️-interactive-terminal-uis)
   - [Live Monitor Dashboard (`linkd monitor` / `linkd top`)](#-live-monitor-dashboard-linkd-monitor--linkd-top)
-  - [Setup Wizards (`linkd wizard` & `linkd init`)](#-setup-wizards-linkd-wizard--linkd-init)
+  - [Setup Wizards Tutorial (`linkd init` vs `linkd wizard`)](#-setup-wizards-tutorial-linkd-init-vs-linkd-wizard)
 - [🛠️ Complete CLI Command Reference](#️-complete-cli-command-reference)
 - [🏗️ Architecture & Safety Guarantees](#️-architecture--safety-guarantees)
 - [🔧 Shell Completions](#-shell-completions)
@@ -73,12 +73,12 @@ Install `linkd` instantly without needing Rust or any prior dependencies:
 
 ### 🐧 Linux & 🍎 macOS
 ```bash
-curl -fsSL https://raw.githubusercontent.com/linkd-dev/linkd/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/main/install.sh | bash
 ```
 
 ### 🪟 Windows (PowerShell)
 ```powershell
-irm https://raw.githubusercontent.com/linkd-dev/linkd/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/pinoox/linkd/main/install.ps1 | iex
 ```
 
 ### 📦 Via Cargo (from source)
@@ -87,7 +87,7 @@ cargo install --path crates/linkd-cli --locked
 ```
 
 ### 💾 Pre-built Binaries
-Download standalone `.tar.gz` and `.zip` archives directly from [GitHub Releases](https://github.com/linkd-dev/linkd/releases).
+Download standalone `.tar.gz` and `.zip` archives directly from [GitHub Releases](https://github.com/pinoox/linkd/releases).
 
 ---
 
@@ -350,7 +350,7 @@ linkd completions powershell >> $PROFILE
 
 ```bash
 # Clone repository
-git clone https://github.com/linkd-dev/linkd.git
+git clone https://github.com/pinoox/linkd.git
 cd linkd
 
 # Run workspace test suite
