@@ -194,9 +194,75 @@ linkd top
   - `Tab` — Toggle focus between Links and Logs panel.
   - `q` / `Esc` — Quit dashboard without stopping daemon.
 
-### 🧙 Setup Wizards (`linkd wizard` & `linkd init`)
-- **`linkd wizard`**: Full-screen 5-step interactive wizard to select ecosystem, browse source/consumer paths, and configure options.
-- **`linkd init`**: Lightweight inline CLI prompt wizard for fast terminal setups.
+### 🧙 Setup Wizards Tutorial: `linkd init` vs `linkd wizard`
+
+`linkd` provides two interactive onboarding experiences designed to eliminate guesswork and syntax memorization:
+
+```
+┌───────────────────────────────┬────────────────────────────────────────────────────────┐
+│ Method                        │ Best For                                               │
+├───────────────────────────────┼────────────────────────────────────────────────────────┤
+│ ⚡ `linkd init`               │ Fast, sequential command-line prompts (Inquire)        │
+│ 🧙 `linkd wizard`             │ Full-screen, step-by-step graphical TUI (Ratatui)      │
+└───────────────────────────────┴────────────────────────────────────────────────────────┘
+```
+
+#### 1. Fast Prompt Wizard (`linkd init`)
+`linkd init` runs a lightweight, sequential questionnaire directly in your current terminal scrollback:
+
+```bash
+linkd init
+```
+
+**Step-by-Step Flow:**
+1. **Choose Ecosystem**: Select from the 7 supported options (`npm`, `composer`, `python`, `go`, `cargo`, `jvm`, `custom path`) using <kbd>↑</kbd>/<kbd>↓</kbd> arrows and <kbd>Enter</kbd>.
+2. **Specify Source**: Enter the path to your library (e.g. `./packages/my-lib`).
+3. **Specify Consumer**: Enter the path to your consumer app (e.g. `../my-app` or default `.`).
+4. **Target Path** *(Custom only)*: Enter the relative sync target inside the consumer.
+5. **Autostart Daemon**: Confirm whether to launch the background daemon immediately (`Y/n`).
+6. **Execution**: `linkd` validates paths against watch loops, performs the initial sync, and confirms completion.
+
+---
+
+#### 2. Full-Screen Guided Wizard (`linkd wizard`)
+`linkd wizard` launches an immersive 5-step visual interface with full keyboard navigation:
+
+```bash
+linkd wizard
+```
+
+**Visual Interface Layout:**
+```
+┌────────────────────────────────────────────────────────────┐
+│ linkd wizard — step 1/5                                    │
+│                                                            │
+│   > npm package                                            │
+│     composer package                                       │
+│     python (uv/pip/poetry)                                 │
+│     go module                                              │
+│     rust (cargo)                                           │
+│     java/kotlin (jvm)                                      │
+│     custom path                                            │
+│                                                            │
+│   ↑/↓ select · Enter next · Esc cancel                     │
+└────────────────────────────────────────────────────────────┘
+│ Ctrl+C cancel · Left back                                  │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Keybindings & Controls:**
+- <kbd>↑</kbd> / <kbd>k</kbd> and <kbd>↓</kbd> / <kbd>j</kbd> — Move selection up / down.
+- <kbd>Enter</kbd> — Advance to next step / Confirm and execute.
+- <kbd>Left</kbd> / <kbd>h</kbd> or <kbd>Alt+Left</kbd> — Go back to previous step to revise inputs.
+- <kbd>d</kbd> — *(On Step 5 Confirmation)* Toggle background daemon auto-start on/off.
+- <kbd>Esc</kbd> / <kbd>Ctrl+C</kbd> — Cancel wizard cleanly without making any changes.
+
+**The 5 Guided Steps:**
+1. **Step 1: Link Type**: Choose between package manager mode or custom path.
+2. **Step 2: Source Package**: Type your library path (interactive text input with backspace & cursor editing).
+3. **Step 3: Consumer Project**: Type your application root directory.
+4. **Step 4: Target Path**: *(Conditional)* Set custom sync destination if custom mode was selected.
+5. **Step 5: Review & Confirm**: Inspect the resolved paths, toggle daemon status (<kbd>d</kbd>), and press <kbd>Enter</kbd> to link.
 
 ---
 

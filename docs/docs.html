@@ -444,11 +444,73 @@
 <span class="t-cyan">q</span> / <span class="t-cyan">Esc</span> Quit monitor dashboard (daemon continues in background)</code></pre>
       </div>
 
-      <h2 id="tui-wizards">🧙 Setup Wizards</h2>
+      <h2 id="tui-wizards">🧙 Interactive Setup Wizards: <code>linkd init</code> vs <code>linkd wizard</code></h2>
+      <p>
+        If you don't want to memorize flags and path arguments, <code>linkd</code> provides two interactive wizards to guide you through registering links effortlessly:
+      </p>
+
+      <h3>1. Quick Prompt Wizard (<code>linkd init</code>)</h3>
+      <p>
+        <code>linkd init</code> is an inline terminal questionnaire powered by Inquire. It asks quick questions sequentially without taking over your full terminal screen.
+      </p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Terminal</span></div>
+        <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd init</span>
+
+<span class="t-cyan">? Link type:</span>
+  > npm package
+    composer package
+    python (uv/pip/poetry)
+    go module
+    rust (cargo)
+    java/kotlin (jvm)
+    custom path
+
+<span class="t-cyan">? Source package directory:</span> ./packages/my-ui-kit
+<span class="t-cyan">? Consumer project directory:</span> ./apps/web-app
+<span class="t-green">✓ Suggested sync strategy: reflink / copy</span>
+<span class="t-cyan">? Start background daemon after linking?</span> Yes
+<span class="t-cyan">? Create link now?</span> Yes
+
+<span class="t-green">✓ Link '@acme/my-ui-kit' successfully registered and synced!</span></code></pre>
+      </div>
+
+      <h3>2. Full-Screen Graphical TUI Wizard (<code>linkd wizard</code>)</h3>
+      <p>
+        <code>linkd wizard</code> launches a dedicated 5-step full-screen application built with Ratatui, featuring interactive text editing, breadcrumb navigation, validation error reporting, and keyboard shortcuts.
+      </p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Ratatui Interface</span></div>
+        <pre><code>┌────────────────────────────────────────────────────────────────────────┐
+│ linkd wizard — step 1/5                                                │
+│                                                                        │
+│   <span class="t-cyan">> npm package</span>                                                        │
+│     composer package                                                   │
+│     python (uv/pip/poetry)                                             │
+│     go module                                                          │
+│     rust (cargo)                                                       │
+│     java/kotlin (jvm)                                                  │
+│     custom path                                                        │
+│                                                                        │
+│   ↑/↓ select · Enter next · Esc cancel                                 │
+└────────────────────────────────────────────────────────────────────────┘
+│ Ctrl+C cancel · Left back                                              │
+└────────────────────────────────────────────────────────────────────────┘</code></pre>
+      </div>
+
+      <h4>Guided Steps Breakdown:</h4>
       <ul>
-        <li><strong><code>linkd wizard</code>:</strong> Full-screen 5-step interactive TUI with arrow key navigation.</li>
-        <li><strong><code>linkd init</code>:</strong> Lightweight interactive command-line prompt.</li>
+        <li><strong>Step 1 (Link Type):</strong> Use <kbd>↑</kbd>/<kbd>↓</kbd> or <kbd>j</kbd>/<kbd>k</kbd> to pick your ecosystem.</li>
+        <li><strong>Step 2 (Source Directory):</strong> Type the path to your package with full inline cursor editing.</li>
+        <li><strong>Step 3 (Consumer Project):</strong> Type the path to the consuming application.</li>
+        <li><strong>Step 4 (Target Path):</strong> <em>(Conditional)</em> Specify custom destination if custom mode was selected in Step 1.</li>
+        <li><strong>Step 5 (Confirmation):</strong> Review the resolved link parameters. Press <kbd>d</kbd> to toggle daemon autostart on or off, and hit <kbd>Enter</kbd> to execute!</li>
       </ul>
+
+      <div class="callout tip">
+        <div class="callout-title">Keyboard Navigation Tips</div>
+        Press <kbd>Left</kbd> or <kbd>h</kbd> at any time during the wizard to return to previous steps and edit your input. Press <kbd>Esc</kbd> or <kbd>Ctrl+C</kbd> to exit cleanly without modifying anything.
+      </div>
 
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 

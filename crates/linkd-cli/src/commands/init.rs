@@ -6,7 +6,15 @@ pub async fn run() -> anyhow::Result<()> {
 
     let link_type = Select::new(
         "Link type:",
-        vec!["npm package", "composer package", "custom path"],
+        vec![
+            "npm package",
+            "composer package",
+            "python (uv/pip/poetry)",
+            "go module",
+            "rust (cargo)",
+            "java/kotlin (jvm)",
+            "custom path",
+        ],
     )
     .prompt()?;
 
@@ -18,18 +26,19 @@ pub async fn run() -> anyhow::Result<()> {
         .with_default("../my-app")
         .prompt()?;
 
-    let (target, ecosystem) = if link_type == "custom path" {
-        let target = Text::new("Sync target path (inside consumer):")
-            .with_default("./lib/shared")
-            .prompt()?;
-        (Some(target.into()), Some(Ecosystem::Custom))
-    } else {
-        let eco = if link_type == "composer package" {
-            Ecosystem::Composer
-        } else {
-            Ecosystem::Npm
-        };
-        (None, Some(eco))
+    let (target, ecosystem) = match link_type {
+        "custom path" => {
+            let target = Text::new("Sync target path (inside consumer):")
+                .with_default("./lib/shared")
+                .prompt()?;
+            (Some(target.into()), Some(Ecosystem::Custom))
+        }
+        "composer package" => (None, Some(Ecosystem::Composer)),
+        "python (uv/pip/poetry)" => (None, Some(Ecosystem::Python)),
+        "go module" => (None, Some(Ecosystem::Go)),
+        "rust (cargo)" => (None, Some(Ecosystem::Cargo)),
+        "java/kotlin (jvm)" => (None, Some(Ecosystem::Jvm)),
+        _ => (None, Some(Ecosystem::Npm)),
     };
 
     #[cfg(target_os = "macos")]
