@@ -117,7 +117,9 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     if cli.daemon_internal {
-        return linkd_daemon::run_daemon_internal().map_err(|e| anyhow::anyhow!(e.to_string()));
+        return linkd_daemon::run_daemon_internal()
+            .await
+            .map_err(|e| anyhow::anyhow!(e.to_string()));
     }
 
     let Some(command) = cli.command else {

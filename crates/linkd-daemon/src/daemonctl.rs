@@ -73,19 +73,15 @@ fn write_pid_file(pid: u32) -> LinkdResult<()> {
     .save()
 }
 
-pub fn stop_daemon(force: bool) -> LinkdResult<()> {
+pub async fn stop_daemon(force: bool) -> LinkdResult<()> {
     let pid_file = match read_daemon_pid()? {
         Some(p) => p,
         None => return Ok(()),
     };
 
     if let Ok(client) = linkd_ipc::IpcClient::new() {
-        let shutdown = tokio::runtime::Handle::try_current()
-            .map(|h| h.block_on(client.shutdown()))
-            .or_else(|_| tokio::runtime::Runtime::new().map(|rt| rt.block_on(client.shutdown())));
-
-        if let Ok(Ok(())) = shutdown {
-            std::thread::sleep(std::time::Duration::from_millis(500));
+        if client.shutdown().await.is_ok() {
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             if !is_linkd_process(pid_file.pid) {
                 DaemonPidFile::remove()?;
                 return Ok(());
@@ -119,18 +115,14 @@ fn kill_process(pid: u32) {
     }
 }
 
-pub fn run_daemon_internal() -> LinkdResult<()> {
+pub async fn run_daemon_internal() -> LinkdResult<()> {
     cleanup_stale_pid()?;
     let pid = std::process::id();
     write_pid_file(pid)?;
 
-    let result = tokio::runtime::Runtime::new()
-        .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?
-        .block_on(async {
-            let store = linkd_registry::RegistryStore::default();
-            let service = crate::DaemonService::new(store);
-            service.run_background().await
-        });
+    let store = linkd_registry::RegistryStore::default();
+    let service = crate::DaemonService::new(store);
+    let result = service.run_background().await;
 
     let _ = DaemonPidFile::remove();
     result
