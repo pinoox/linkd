@@ -12,12 +12,12 @@ pub fn list_files(source: &Path) -> LinkdResult<Vec<PathBuf>> {
     {
         let path = entry.path();
         if path.is_file() {
-            if should_exclude(path) {
-                continue;
-            }
             let rel = path
                 .strip_prefix(source)
                 .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+            if should_exclude(rel) {
+                continue;
+            }
             files.push(rel.to_path_buf());
         }
     }
@@ -25,8 +25,8 @@ pub fn list_files(source: &Path) -> LinkdResult<Vec<PathBuf>> {
     Ok(files)
 }
 
-fn should_exclude(path: &Path) -> bool {
-    path.components().any(|c| {
+fn should_exclude(rel: &Path) -> bool {
+    rel.components().any(|c| {
         let name = c.as_os_str().to_string_lossy();
         matches!(
             name.as_ref(),
