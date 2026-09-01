@@ -214,6 +214,7 @@
         <div class="sidebar-title">Ecosystem Guides</div>
         <ul class="sidebar-list">
           <li><a href="#eco-javascript" class="sidebar-link">🟢 JavaScript / TypeScript</a></li>
+          <li><a href="#eco-dart" class="sidebar-link">💙 Flutter & Dart</a></li>
           <li><a href="#eco-php" class="sidebar-link">🐘 PHP (Composer)</a></li>
           <li><a href="#eco-python" class="sidebar-link">🐍 Python (uv / pip / poetry)</a></li>
           <li><a href="#eco-go" class="sidebar-link">🐹 Go (Go Modules & Vendor)</a></li>
@@ -402,6 +403,17 @@
       <ul>
         <li><strong>Watched Markers:</strong> <code>package-lock.json</code>, <code>pnpm-lock.yaml</code>, <code>yarn.lock</code>, <code>bun.lockb</code></li>
         <li><strong>Filtered files:</strong> <code>node_modules</code>, <code>.git</code>, <code>dist/.cache</code></li>
+      </ul>
+
+      <h2 id="eco-dart">💙 Flutter & Dart (pubspec.yaml)</h2>
+      <p>Detects <code>pubspec.yaml</code>, extracts the package name, and synchronizes into <code>consumer/.dart_tool/packages/&lt;package_name&gt;</code> with instant hot reload compatibility.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/flutter_ui_kit ./apps/flutter_mobile_app</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>.dart_tool</code>, <code>.pub-cache</code>, <code>build/</code>, <code>android/</code>, <code>ios/</code>, <code>.git</code></li>
+        <li><strong>Watched Markers:</strong> <code>pubspec.lock</code>, <code>.dart_tool/package_config.json</code>, <code>.packages</code></li>
       </ul>
 
       <h2 id="eco-php">🐘 PHP (Composer)</h2>

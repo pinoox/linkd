@@ -17,6 +17,7 @@ pub async fn run() -> anyhow::Result<()> {
         "Select package ecosystem:",
         vec![
             "JavaScript / TypeScript (npm, pnpm, yarn, bun)",
+            "Flutter / Dart (pubspec.yaml)",
             "PHP (Composer)",
             "Python (uv, pip, poetry)",
             "Go (go.mod / vendor)",
@@ -34,6 +35,7 @@ pub async fn run() -> anyhow::Result<()> {
                 .prompt()?;
             (Some(PathBuf::from(target)), Some(Ecosystem::Custom))
         }
+        "Flutter / Dart (pubspec.yaml)" => (None, Some(Ecosystem::Dart)),
         "PHP (Composer)" => (None, Some(Ecosystem::Composer)),
         "Python (uv, pip, poetry)" => (None, Some(Ecosystem::Python)),
         "Go (go.mod / vendor)" => (None, Some(Ecosystem::Go)),

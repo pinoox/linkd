@@ -38,7 +38,14 @@ pub fn daemon_socket_path() -> PathBuf {
 
 #[cfg(windows)]
 pub fn daemon_pipe_name() -> String {
-    r"\\.\pipe\linkd-daemon".to_string()
+    use std::hash::{Hash, Hasher};
+    if let Ok(home) = std::env::var("LINKD_HOME") {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        home.hash(&mut hasher);
+        format!(r"\\.\pipe\linkd-daemon-{:x}", hasher.finish())
+    } else {
+        r"\\.\pipe\linkd-daemon".to_string()
+    }
 }
 
 pub fn log_path() -> PathBuf {

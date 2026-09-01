@@ -430,6 +430,9 @@ fn render_links_list(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
                 linkd_core::Ecosystem::Jvm => {
                     Span::styled("[jvm]", Style::default().fg(Color::LightGreen))
                 }
+                linkd_core::Ecosystem::Dart => {
+                    Span::styled("[dart/flutter]", Style::default().fg(Color::LightCyan))
+                }
                 linkd_core::Ecosystem::Custom => {
                     Span::styled("[custom]", Style::default().fg(Color::Blue))
                 }

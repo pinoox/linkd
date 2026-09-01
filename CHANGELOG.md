@@ -42,6 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extracts Group ID and Artifact ID from `pom.xml`, `build.gradle`, or `build.gradle.kts`.
   - Routes sync targets to consumer `libs/<artifact>`.
   - Filters `build/`, `target/`, `.gradle/`, and `*.class` files.
+- **Flutter & Dart (`linkd-adapters-dart`)**:
+  - Auto-detects `pubspec.yaml` manifest and extracts package name.
+  - Automatically resolves sync target to consumer `.dart_tool/packages/<package_name>`.
+  - Filters `.dart_tool`, `.pub-cache`, `build/`, platform build folders, `.git`, `.idea`, and `.vscode`.
+  - Monitors `pubspec.lock`, `.dart_tool/package_config.json`, and `.packages` for reinstall events.
 - **Custom Directories (`linkd-adapters-custom`)**:
   - Framework-agnostic linking for arbitrary asset directories and internal libraries via `--target`.
 

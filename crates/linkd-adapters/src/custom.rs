@@ -335,3 +335,44 @@ impl EcosystemAdapter for JvmAdapter {
         linkd_adapters_jvm::post_sync_hint(source, consumer)
     }
 }
+
+pub struct DartAdapter;
+
+impl EcosystemAdapter for DartAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Dart
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_dart::detect_dart(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_dart::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_dart::resolve_dart_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_dart::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_dart::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join(".dart_tool")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_dart::post_sync_hint(source, consumer)
+    }
+}

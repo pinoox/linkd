@@ -13,6 +13,7 @@ members = [
     "crates/linkd-adapters-go",
     "crates/linkd-adapters-cargo",
     "crates/linkd-adapters-jvm",
+    "crates/linkd-adapters-dart",
     "crates/linkd-adapters",
     "crates/linkd-daemon",
     "crates/linkd-cli",
@@ -63,6 +64,7 @@ linkd-adapters-python = { path = "crates/linkd-adapters-python" }
 linkd-adapters-go = { path = "crates/linkd-adapters-go" }
 linkd-adapters-cargo = { path = "crates/linkd-adapters-cargo" }
 linkd-adapters-jvm = { path = "crates/linkd-adapters-jvm" }
+linkd-adapters-dart = { path = "crates/linkd-adapters-dart" }
 linkd-adapters = { path = "crates/linkd-adapters" }
 linkd-daemon = { path = "crates/linkd-daemon" }
 

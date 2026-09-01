@@ -747,6 +747,7 @@ version = "0.1.2"
 dependencies = [
  "linkd-adapters-cargo",
  "linkd-adapters-composer",
+ "linkd-adapters-dart",
  "linkd-adapters-go",
  "linkd-adapters-jvm",
  "linkd-adapters-npm",
@@ -779,6 +780,15 @@ dependencies = [
  "linkd-sync",
  "serde",
  "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-dart"
+version = "0.1.2"
+dependencies = [
+ "linkd-core",
  "tempfile",
  "walkdir",
 ]

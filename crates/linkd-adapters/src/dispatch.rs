@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use linkd_core::{Ecosystem, LinkEntry, LinkMode, LinkdResult, ResolvedSyncTarget};
 
 use crate::{
-    CargoAdapter, ComposerAdapter, CustomAdapter, EcosystemAdapter, GoAdapter, JvmAdapter,
-    NpmAdapter, PythonAdapter,
+    CargoAdapter, ComposerAdapter, CustomAdapter, DartAdapter, EcosystemAdapter, GoAdapter,
+    JvmAdapter, NpmAdapter, PythonAdapter,
 };
 
 pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
@@ -15,11 +15,15 @@ pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
         Ecosystem::Go => Box::new(GoAdapter),
         Ecosystem::Cargo => Box::new(CargoAdapter),
         Ecosystem::Jvm => Box::new(JvmAdapter),
+        Ecosystem::Dart => Box::new(DartAdapter),
         Ecosystem::Custom => Box::new(CustomAdapter),
     }
 }
 
 pub fn detect_ecosystem(source: &Path, consumer: &Path) -> Ecosystem {
+    if source.join("pubspec.yaml").is_file() {
+        return Ecosystem::Dart;
+    }
     if source.join("pyproject.toml").is_file()
         || source.join("setup.py").is_file()
         || source.join("setup.cfg").is_file()
@@ -45,6 +49,9 @@ pub fn detect_ecosystem(source: &Path, consumer: &Path) -> Ecosystem {
         return Ecosystem::Npm;
     }
 
+    if consumer.join("pubspec.yaml").is_file() || consumer.join(".dart_tool").exists() {
+        return Ecosystem::Dart;
+    }
     if consumer.join(".venv").exists()
         || consumer.join("venv").exists()
         || consumer.join("Pipfile").is_file()
@@ -109,6 +116,7 @@ pub fn resolve_link(
         Ecosystem::Go => Some("go".into()),
         Ecosystem::Cargo => Some("cargo".into()),
         Ecosystem::Jvm => Some("maven/gradle".into()),
+        Ecosystem::Dart => Some("flutter/dart".into()),
         Ecosystem::Custom => None,
     };
 
@@ -183,6 +191,11 @@ pub fn build_allowlist_for_link(
         Ecosystem::Jvm => linkd_sync::WriteAllowlist::from_consumer_subdirs(
             &link.consumer_root,
             &["libs"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Dart => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &[".dart_tool", "packages"],
             resolved.forbidden_roots.clone(),
         ),
         Ecosystem::Custom => {

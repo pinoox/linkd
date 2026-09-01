@@ -79,3 +79,8 @@ path = "cargo_sync.rs"
 name = "jvm_sync"
 path = "jvm_sync.rs"
 
+[[test]]
+name = "dart_sync"
+path = "dart_sync.rs"
+
+

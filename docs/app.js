@@ -77,6 +77,21 @@ linkd link ./packages/ui-kit ./apps/web-app
 # Run installs without breaking links!
 cd ./apps/web-app && pnpm install`
   },
+  dart: {
+    title: '💙 Flutter & Dart',
+    desc: 'Native support for Flutter and Dart multi-package monorepos. Automatically extracts package name from pubspec.yaml, routes into .dart_tool/packages, and supports hot reloads with zero manual sync friction.',
+    features: [
+      'Auto-detects pubspec.yaml and package definitions',
+      'Syncs directly into consumer .dart_tool/packages/<pkg>',
+      'Watches pubspec.lock, .dart_tool/package_config.json, and .packages',
+      'Instant Flutter hot reload & test runner compatibility'
+    ],
+    code: `# Link a Flutter UI kit / shared library into your mobile app
+linkd link ./packages/flutter_ui_kit ./apps/flutter_mobile_app
+
+# Live-syncs Dart code and assets across hot reloads!
+# Survives 'flutter pub get' or 'dart pub get'`
+  },
   composer: {
     title: '🐘 PHP (Composer)',
     desc: 'Seamless local PHP package development. Automatically parses vendor/package namespaces from composer.json, routes to consumer/vendor, and notifies you when composer dump-autoload is needed for new classmaps.',

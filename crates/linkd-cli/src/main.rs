@@ -36,6 +36,8 @@ enum EcosystemArg {
     Go,
     Cargo,
     Jvm,
+    Dart,
+    Flutter,
     Custom,
 }
 
@@ -48,6 +50,7 @@ impl From<EcosystemArg> for Ecosystem {
             EcosystemArg::Go => Ecosystem::Go,
             EcosystemArg::Cargo => Ecosystem::Cargo,
             EcosystemArg::Jvm => Ecosystem::Jvm,
+            EcosystemArg::Dart | EcosystemArg::Flutter => Ecosystem::Dart,
             EcosystemArg::Custom => Ecosystem::Custom,
         }
     }
@@ -243,13 +246,13 @@ async fn main() -> anyhow::Result<()> {
                     "version": env!("CARGO_PKG_VERSION"),
                     "target_os": std::env::consts::OS,
                     "target_arch": std::env::consts::ARCH,
-                    "ecosystems": ["npm", "pnpm", "yarn", "bun", "composer", "python", "go", "cargo", "jvm", "custom"]
+                    "ecosystems": ["npm", "pnpm", "yarn", "bun", "composer", "python", "go", "cargo", "jvm", "dart", "flutter", "custom"]
                 });
                 println!("{}", serde_json::to_string_pretty(&info)?);
             } else {
                 println!("linkd v{}", env!("CARGO_PKG_VERSION"));
                 println!("Continuous local-dev link daemon for multi-ecosystem monorepos");
-                println!("Supported ecosystems: JS/TS, PHP Composer, Python, Go, Rust Cargo, JVM, Custom");
+                println!("Supported ecosystems: JS/TS, PHP Composer, Python, Go, Rust Cargo, JVM, Dart/Flutter, Custom");
             }
             Ok(())
         }

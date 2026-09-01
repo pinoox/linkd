@@ -94,7 +94,6 @@ impl IpcServer {
 
             let pipe_name = linkd_core::daemon_pipe_name();
             let mut pipe = ServerOptions::new()
-                .first_pipe_instance(true)
                 .create(&pipe_name)
                 .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
 

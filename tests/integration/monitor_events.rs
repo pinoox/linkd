@@ -73,10 +73,16 @@ async fn test_ipc_event_streaming_and_controls() -> LinkdResult<()> {
         let _ = ipc_server.run().await;
     });
 
-    tokio::time::sleep(Duration::from_millis(150)).await;
-
+    let mut connected = false;
     let client = IpcClient::new()?;
-    assert!(client.ping().await?);
+    for _ in 0..20 {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        if client.ping().await.unwrap_or(false) {
+            connected = true;
+            break;
+        }
+    }
+    assert!(connected, "IPC client failed to connect to test server");
 
     let mut rx = client.subscribe_events().await?;
 

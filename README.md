@@ -36,11 +36,12 @@
 - [⚡ Quick Start](#-quick-start)
 - [🌐 Supported Ecosystems & Examples](#-supported-ecosystems--examples)
   - [1. JavaScript / TypeScript (npm, pnpm, yarn, bun)](#1-javascript--typescript-npm-pnpm-yarn-bun)
-  - [2. PHP (Composer)](#2-php-composer)
-  - [3. Python (uv, pip, poetry)](#3-python-uv-pip-poetry)
-  - [4. Go (Go Modules & Vendor)](#4-go-go-modules--vendor)
-  - [5. Rust (Cargo)](#5-rust-cargo)
-  - [6. Custom Directory](#6-custom-directory-framework-agnostic)
+  - [2. Flutter & Dart (pubspec.yaml)](#2-flutter--dart-pubspecyaml)
+  - [3. PHP (Composer)](#3-php-composer)
+  - [4. Python (uv, pip, poetry)](#4-python-uv-pip-poetry)
+  - [5. Go (Go Modules & Vendor)](#5-go-go-modules--vendor)
+  - [6. Rust (Cargo)](#6-rust-cargo)
+  - [7. Custom Directory](#7-custom-directory-framework-agnostic)
 - [🖥️ Interactive Terminal UIs](#️-interactive-terminal-uis)
   - [Live Monitor Dashboard (`linkd monitor` / `linkd top`)](#-live-monitor-dashboard-linkd-monitor--linkd-top)
   - [Setup Wizards Tutorial (`linkd init` vs `linkd wizard`)](#-setup-wizards-tutorial-linkd-init-vs-linkd-wizard)
@@ -180,6 +181,7 @@ linkd init
 | Ecosystem | Manifest | Target Directory | Reinstall Watch Markers |
 |---|---|---|---|
 | 🟢 **JavaScript / TypeScript** | `package.json` | `node_modules/<pkg>` | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb` |
+| 💙 **Flutter / Dart** | `pubspec.yaml` | `.dart_tool/packages/<pkg>` | `pubspec.lock`, `.dart_tool/package_config.json`, `.packages` |
 | 🐘 **PHP (Composer)** | `composer.json` | `vendor/<vendor>/<pkg>` | `composer.lock`, `vendor/composer/installed.json` |
 | 🐍 **Python (uv/pip/poetry)** | `pyproject.toml`, `setup.py` | `.venv/Lib/site-packages/<pkg>` | `uv.lock`, `poetry.lock`, `Pipfile.lock`, `requirements.txt` |
 | 🐹 **Go (Go Modules)** | `go.mod` | `vendor/<module_path>` | `go.sum`, `go.work.sum`, `go.work` |
@@ -200,7 +202,15 @@ linkd link ./packages/design-system ./apps/nextjs-app
 # (never writes to ~/.pnpm-store)
 ```
 
-#### 2. PHP (Composer)
+#### 2. Flutter & Dart (pubspec.yaml)
+```bash
+# Detects pubspec.yaml, parses package name, and links into consumer's .dart_tool/packages
+linkd link ./packages/flutter_ui_kit ./apps/flutter_mobile_app
+
+# Live-syncs Dart code and assets across hot reloads seamlessly
+```
+
+#### 3. PHP (Composer)
 ```bash
 # Detects composer.json, parses vendor/package namespace, links into vendor/acme/logger
 linkd link ./packages/acme-logger ./apps/laravel-api
@@ -208,26 +218,26 @@ linkd link ./packages/acme-logger ./apps/laravel-api
 # If new classes are added, linkd reminds you if `composer dump-autoload` is needed
 ```
 
-#### 3. Python (uv, pip, poetry)
+#### 4. Python (uv, pip, poetry)
 ```bash
 # Links package into virtualenv site-packages (.venv/Lib/site-packages or Unix lib/python*/...)
 # Automatically excludes __pycache__, *.pyc, and .pytest_cache
 linkd link ./packages/ml-core ./apps/fastapi-service
 ```
 
-#### 4. Go (Go Modules & Vendor)
+#### 5. Go (Go Modules & Vendor)
 ```bash
 # Links Go package into consumer's vendor directory according to module declaration
 linkd link ./packages/auth-module ./apps/microservice
 ```
 
-#### 5. Rust (Cargo)
+#### 6. Rust (Cargo)
 ```bash
 # Vendors local crate into consumer's vendor folder without modifying Cargo.toml
 linkd link ./crates/shared-types ./apps/backend-service
 ```
 
-#### 6. Custom Directory (Framework-Agnostic)
+#### 7. Custom Directory (Framework-Agnostic)
 ```bash
 # Sync any folder into any arbitrary destination with built-in loop guard protection
 linkd link ./shared-assets ./apps/electron-app --target ./apps/electron-app/src/assets/shared

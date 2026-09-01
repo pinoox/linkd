@@ -15,6 +15,7 @@ pub enum Ecosystem {
     Go,
     Cargo,
     Jvm,
+    Dart,
     Custom,
 }
 
