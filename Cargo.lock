@@ -1002,6 +1002,7 @@ name = "linkd-sync"
 version = "0.1.2"
 dependencies = [
  "chrono",
+ "filetime",
  "linkd-core",
  "reflink-copy",
  "sha2",

@@ -99,5 +99,10 @@ path = "swift_sync.rs"
 name = "elixir_sync"
 path = "elixir_sync.rs"
 
+[[test]]
+name = "incremental_sync"
+path = "incremental_sync.rs"
+
+
 
 

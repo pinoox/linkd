@@ -6,6 +6,7 @@ license.workspace = true
 
 [dependencies]
 chrono = { workspace = true }
+filetime = { workspace = true }
 linkd-core = { workspace = true }
 reflink-copy = { workspace = true }
 sha2 = { workspace = true }

@@ -76,7 +76,7 @@ impl Reconciler {
         }
 
         match self.sync_link(&link) {
-            Ok((hash, count, target, isolation)) => {
+            Ok((hash, count, copied, skipped, deleted, target, isolation)) => {
                 let now = Utc::now();
                 self.registry.update_link(link_id, |entry| {
                     Registry::update_sync(entry, hash, count, now);
@@ -85,6 +85,12 @@ impl Reconciler {
                 })?;
 
                 let duration_ms = start_time.elapsed().as_millis() as u64;
+
+                let sync_summary = if copied > 0 || deleted > 0 {
+                    format!("{copied} updated, {deleted} deleted, {skipped} unchanged")
+                } else {
+                    format!("up-to-date, {skipped} unchanged")
+                };
 
                 if let Some(events_tx) = &self.events_tx {
                     let _ = events_tx.send(DaemonEvent::SyncCompleted {
@@ -105,9 +111,7 @@ impl Reconciler {
                         level: "INFO".into(),
                         ecosystem: Some(format!("{:?}", link.ecosystem)),
                         message: format!(
-                            "synced {} files ({}ms) -> {}",
-                            count,
-                            duration_ms,
+                            "synced {count} files ({sync_summary} in {duration_ms}ms) -> {}",
                             target.display()
                         ),
                     });
@@ -124,7 +128,10 @@ impl Reconciler {
                         });
                     }
                 }
-                info!("synced {} ({} files)", link.package_name, count);
+                info!(
+                    "synced {} ({count} files, {sync_summary} in {duration_ms}ms)",
+                    link.package_name
+                );
                 Ok(())
             }
             Err(e) => {
@@ -159,7 +166,15 @@ impl Reconciler {
     fn sync_link(
         &self,
         link: &LinkEntry,
-    ) -> LinkdResult<(String, u32, PathBuf, linkd_core::IsolationMode)> {
+    ) -> LinkdResult<(
+        String,
+        u32,
+        u32,
+        u32,
+        u32,
+        PathBuf,
+        linkd_core::IsolationMode,
+    )> {
         let resolved = resolve_for_reconcile(link)?;
         ensure_isolation(link, &resolved)?;
 
@@ -187,6 +202,9 @@ impl Reconciler {
         Ok((
             output.hash,
             output.file_count,
+            output.files_copied,
+            output.files_skipped,
+            output.files_deleted,
             output.sync_target,
             output.isolation_mode,
         ))
