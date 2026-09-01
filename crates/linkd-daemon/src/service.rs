@@ -199,10 +199,8 @@ fn matching_link_ids_for_event(
                 clean_evt_path == clean_m || clean_evt_path.starts_with(&clean_m)
             });
 
-            if is_source_match || is_marker_match {
-                if !matched_ids.contains(&link.id) {
-                    matched_ids.push(link.id);
-                }
+            if (is_source_match || is_marker_match) && !matched_ids.contains(&link.id) {
+                matched_ids.push(link.id);
             }
         }
     }
