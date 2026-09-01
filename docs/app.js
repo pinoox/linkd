@@ -41,6 +41,7 @@ function initMobileNavigation() {
 function initInstallTabs() {
   const tabs = document.querySelectorAll('.install-tab');
   const codeElem = document.querySelector('.install-code');
+  if (tabs.length === 0 || !codeElem) return;
 
   const commands = {
     bash: 'curl -fsSL https://raw.githubusercontent.com/pinoox/linkd/master/install.sh | bash',
@@ -293,6 +294,8 @@ function initEcosystemTabs() {
   const featuresEl = document.getElementById('eco-features');
   const codeEl = document.getElementById('eco-code');
 
+  if (tabs.length === 0 || !titleEl || !descEl || !featuresEl || !codeEl) return;
+
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
@@ -320,7 +323,7 @@ const TUI_LINKS = [
     statusClass: 't-green',
     source: 'C:/projects/packages/ui-kit',
     target: 'C:/projects/apps/web/node_modules/@acme/ui-kit',
-    pm: 'pnpm (shadow isolation)',
+    pm: 'pnpm (shadow)',
     files: 42,
     syncs: 18
   },
@@ -330,23 +333,23 @@ const TUI_LINKS = [
     ecoColor: 'var(--accent-purple)',
     status: '[SYNCED]',
     statusClass: 't-green',
-    source: 'C:/projects/packages/acme-logger',
+    source: 'C:/projects/packages/logger',
     target: 'C:/projects/apps/api/vendor/acme/logger',
     pm: 'composer',
     files: 14,
     syncs: 6
   },
   {
-    name: 'ml-core',
+    name: 'py-utils',
     eco: '[python]',
-    ecoColor: 'var(--accent-yellow)',
+    ecoColor: 'var(--accent-green)',
     status: '[SYNCED]',
     statusClass: 't-green',
-    source: 'C:/projects/packages/ml-core',
-    target: 'C:/projects/apps/api/.venv/Lib/site-packages/ml_core',
-    pm: 'uv / pip',
-    files: 28,
-    syncs: 9
+    source: 'C:/projects/packages/py-utils',
+    target: 'C:/projects/apps/ai/.venv/Lib/site-packages/py_utils',
+    pm: 'uv / venv',
+    files: 8,
+    syncs: 12
   },
   {
     name: 'example.com/auth',
@@ -366,6 +369,8 @@ function initTuiSimulator() {
   const listEl = document.getElementById('tui-links-list');
   const inspEl = document.getElementById('tui-inspector-content');
   const logsEl = document.getElementById('tui-logs-content');
+
+  if (!listEl || !inspEl || !logsEl) return;
 
   let selectedIdx = 0;
 
