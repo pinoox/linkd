@@ -117,6 +117,16 @@ impl DaemonService {
                     }
 
                     for evt in debounce.ready() {
+                        // Only react to source changes and lockfile reinstall markers.
+                        // TargetChanged = writes into node_modules / vendor by the daemon
+                        // itself — reacting to these would cause an infinite sync loop.
+                        let should_reconcile = match evt.key.as_str() {
+                            "source" | "marker" => true,
+                            _ => false,
+                        };
+                        if !should_reconcile {
+                            continue;
+                        }
                         info!("debounced event {:?} paths={}", evt.key, evt.paths.len());
                         let _ = events_tx.send(linkd_ipc::DaemonEvent::LogMessage {
                             timestamp: chrono::Utc::now(),
@@ -156,9 +166,12 @@ impl DaemonService {
 fn watch_paths_for_links(links: &[linkd_core::LinkEntry]) -> Vec<std::path::PathBuf> {
     let mut paths = Vec::new();
     for link in links {
+        // Watch lockfiles / completion markers so we detect reinstalls.
         paths.extend(completion_markers_for_link(link));
+        // Watch the source package so we sync on code changes.
         paths.push(link.source_path.clone());
-        paths.push(link.sync_target.clone());
+        // NOTE: do NOT watch sync_target — the daemon writes there itself,
+        // which would cause an infinite reconcile loop.
     }
     paths.sort();
     paths.dedup();
