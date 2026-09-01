@@ -55,13 +55,20 @@ body {
 .container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 28px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .container {
-    padding: 0 16px;
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 20px;
   }
 }
 
@@ -938,13 +945,19 @@ a:hover {
     padding: 50px 0;
   }
   .comp-card {
-    padding: 20px 16px;
+    padding: 22px 20px;
   }
   .feature-card {
-    padding: 22px 18px;
+    padding: 22px 20px;
+  }
+  .eco-panel {
+    padding: 24px 20px;
+  }
+  .install-box {
+    margin: 0 2px;
   }
   .docs-callout-card {
-    padding: 24px 16px;
+    padding: 28px 22px;
     flex-direction: column;
     align-items: stretch;
     text-align: center;

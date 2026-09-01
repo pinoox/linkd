@@ -166,12 +166,14 @@
     .mobile-toc-bar {
       display: none;
       position: sticky;
-      top: 64px;
+      top: 72px;
       z-index: 90;
       background: var(--bg-subtle);
-      border-bottom: 1px solid var(--border-default);
-      padding: 10px 16px;
-      margin: 0 -16px 24px;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin: 0 0 28px 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
     .mobile-toc-toggle {
       width: 100%;
@@ -205,13 +207,17 @@
     @media (max-width: 960px) {
       .docs-layout {
         grid-template-columns: 1fr;
-        padding-top: 16px;
+        padding-top: 20px;
+        padding-bottom: 60px;
       }
       .docs-sidebar {
         display: none;
       }
       .mobile-toc-bar {
         display: block;
+      }
+      .docs-content {
+        padding: 0 2px;
       }
     }
   </style>
