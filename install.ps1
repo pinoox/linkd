@@ -104,7 +104,7 @@ try {
 
 # Step 4: Verification
 Write-Host "  [4/4] 🔍 Verifying installation..." -ForegroundColor Cyan
-$VersionString = "0.1.2"
+$VersionString = "0.1.3"
 if (Test-Path $ExePath) {
     try {
         $VersionOutput = & "$ExePath" -v 2>$null

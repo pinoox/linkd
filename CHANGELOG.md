@@ -7,15 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [0.1.3] - 2026-09-01
+
+### 🚀 Public Release (v0.1.3)
+
+`linkd` v0.1.3 delivers **3-layer smart incremental differential sync**, **hierarchical tree views** in monitor and list commands, complete **polyglot expansion across 11 ecosystems**, and simplified guided initialization.
+
+---
 
 ### ✨ Added
-- **Hierarchical tree view in `linkd list`**: Packages are now grouped with consumers shown as nested branches (`├──`, `└──`) instead of a flat repeating list.
-- **Hierarchical tree view in `linkd monitor`**: The TUI dashboard now renders links as a collapsible tree grouped by package.
-  - New keyboard shortcut `g` cycles between group modes: **By Package** → **By Consumer** → **Flat**.
-  - `Space` / `Enter` on a package header collapses/expands its consumer list.
-  - Selecting a package header shows an aggregate inspector (total files, consumer count, bulk re-sync).
-- **Full walkdir in npm fallback**: The `list_pack_files_fallback` now recursively walks the entire source tree (excluding `node_modules`, `.git`, `target`) instead of only listing hardcoded top-level files.
+
+#### 1. 3-Layer Smart Content-Aware Incremental Sync Engine
+- **Layer 1 (Fast Metadata Gate)**: Instant file size and modification timestamp (`mtime`) comparison without redundant disk reads.
+- **Layer 2 (Content Hash Gate)**: Fast SHA-256 comparison for modified timestamps to avoid unnecessary disk writes if content is identical.
+- **Layer 3 (Granular In-Place Updates)**: Writes only modified/added files, preserving untouched files and open file handles in place (eliminating Windows `Access Denied` and preventing frontend bundler / Flutter rebuild loops).
+- **Dead File Cleanup**: Automatically detects and deletes only stale removed files from destination.
+- **Timestamp Preservation**: Preserves source file `mtime` onto destination so subsequent syncs hit 0ms instant metadata cache.
+- **Granular Reconciler Metrics**: Live logs display exact stats (e.g. `synced @acme/pkg (1 updated, 0 deleted, 5 unchanged in 48ms)`).
+
+#### 2. Hierarchical Nested Tree View in CLI & Monitor Dashboard
+- **Hierarchical `linkd list`**: Groups multi-consumer packages into clean visual tree branches (`├──`, `└──`) instead of repeating flat rows.
+- **Collapsible TUI Dashboard in `linkd monitor`**:
+  - Interactive tree branches grouped by package or consumer.
+  - `Space` / `Enter` to collapse/expand package groups or toggle pause/resume.
+  - `g` key shortcut to cycle grouping mode: **By Package** → **By Consumer** → **Flat List**.
+  - Aggregate Inspector panel showing total files across consumers, health, and bulk actions (`r` force sync all, `u` unlink).
+
+#### 3. Expanded Native Ecosystems (11 Supported)
+- **Dart & Flutter**: Native support for `pubspec.yaml`, `.dart_tool/packages`, and hot-reload preservation.
+- **.NET (C# / F# / NuGet)**: Native `.csproj` / `Directory.Build.props` detection and `packages/` routing.
+- **Ruby (Bundler / Gems)**: `*.gemspec` and `Gemfile` support into `vendor/bundle/gems`.
+- **Swift (SPM)**: `Package.swift` and `Package.resolved` support into `.build/checkouts`.
+- **Elixir (Mix)**: `mix.exs` and `mix.lock` support into `deps/`.
+
+#### 4. Setup Wizard Streamlining
+- Streamlined `linkd init` with an interactive 11-ecosystem terminal selector, path validation, and autostart prompt.
+- Removed legacy `linkd wizard` in favor of the fast, inline `linkd init`.
+
+---
+
+### 🐛 Fixed
+- **Infinite Loop Elimination**: Stopped watching `sync_target` directly and filtered internal target write events in the daemon watcher.
+- **Recursive Walkdir in NPM Fallback**: Fixed `list_pack_files_fallback` to recursively list nested subdirectories (e.g. `src/math_helper.js`).
+- **Windows Path Prefix Normalization**: Fixed `\\?\` prefix in paths passed during `linkd init`.
 
 ---
 
@@ -139,4 +173,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.1.3]: https://github.com/pinoox/linkd/releases/tag/v0.1.3
 [0.1.2]: https://github.com/pinoox/linkd/releases/tag/v0.1.2

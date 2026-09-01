@@ -116,9 +116,9 @@ fi
 
 # Step 4: Verification
 echo -e "  ${CYAN}[4/4]${NC} 🔍 Verifying installation..."
-VERSION_STR="v0.1.2"
+VERSION_STR="v0.1.3"
 if [ -x "$TARGET_BIN" ]; then
-  VERSION_STR="$("$TARGET_BIN" -v 2>/dev/null || echo "v0.1.2")"
+  VERSION_STR="$("$TARGET_BIN" -v 2>/dev/null || echo "v0.1.3")"
 fi
 
 echo -e ""

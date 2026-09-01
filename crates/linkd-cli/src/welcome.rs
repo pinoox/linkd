@@ -23,11 +23,7 @@ pub fn print_welcome_guide() {
     println!();
 
     println!("  {}", "🚀 GETTING STARTED & INTERACTIVE:".yellow().bold());
-    print_cmd(
-        "init",
-        "",
-        "Guided interactive setup wizard (or `linkd wizard`)",
-    );
+    print_cmd("init", "", "Guided interactive setup wizard");
     print_cmd(
         "doctor",
         "[--explain <topic>]",

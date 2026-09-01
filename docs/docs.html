@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>linkd Documentation — Complete Guide, Tutorials & CLI Reference (v0.1.2)</title>
-  <meta name="description" content="Comprehensive documentation and guide for linkd v0.1.2: Multi-ecosystem local-dev package reconciliation for JavaScript, PHP, Python, Go, Rust, Java, and custom directories.">
+  <title>linkd Documentation — Complete Guide, Tutorials & CLI Reference (v0.1.3)</title>
+  <meta name="description" content="Comprehensive documentation and guide for linkd v0.1.3: Multi-ecosystem local-dev package reconciliation for JavaScript, Flutter/Dart, .NET, Ruby, Swift, Elixir, PHP, Python, Go, Rust, Java, and custom directories.">
   <meta name="theme-color" content="#0d1117">
   
   <link rel="stylesheet" href="style.css">
@@ -171,7 +171,7 @@
     <div class="container nav">
       <a href="index.html" class="brand">
         <div class="brand-icon">⚡</div>
-        <span>linkd <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 4px">v0.1.2</span></span>
+        <span>linkd <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 4px">v0.1.3</span></span>
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
@@ -232,7 +232,7 @@
         <div class="sidebar-title">Interactive Tools & TUI</div>
         <ul class="sidebar-list">
           <li><a href="#tui-monitor" class="sidebar-link">Live Monitor Dashboard</a></li>
-          <li><a href="#tui-wizards" class="sidebar-link">Dual Setup Wizards</a></li>
+          <li><a href="#tui-wizards" class="sidebar-link">Setup Wizard (linkd init)</a></li>
         </ul>
       </div>
 
@@ -257,7 +257,7 @@
     <!-- Main Content Body -->
     <main class="docs-content">
       <div class="hero-pill">
-        <span>⚡ linkd v0.1.2 Official Documentation</span>
+        <span>⚡ linkd v0.1.3 Official Documentation</span>
       </div>
 
       <h1 id="overview">Overview & Introduction</h1>
@@ -544,37 +544,26 @@
   └── 📂 apps/flutter_app → .dart_tool/packages/my_flutter_widget  [✓ synced]</code></pre>
       </div>
 
-      <div class="code-wrapper" style="margin-top: 16px">
-        <div class="code-header"><span>Keyboard Controls</span></div>
-        <pre><code><span class="t-cyan">↑/↓  j/k</span>     Navigate between packages and consumers
-<span class="t-cyan">Space / Enter</span> Collapse/expand a package group · Pause/Resume a link
-<span class="t-cyan">g</span>            Cycle group mode: By Package → By Consumer → Flat list
-<span class="t-cyan">r</span>            Force re-sync of selected link (or all links in group)
-<span class="t-cyan">u</span>            Unlink selected package or consumer
-<span class="t-cyan">c</span>            Clear log view
-<span class="t-cyan">Tab</span>          Switch focus between tree and logs panel
-<span class="t-cyan">q / Esc</span>      Quit monitor (daemon keeps running in background)</code></pre>
-      </div>
-
-      <h2 id="tui-wizards">🧙 Interactive Setup Wizards: <code>linkd init</code> vs <code>linkd wizard</code></h2>
+        <h2 id="tui-wizards">🧙 Interactive Setup Wizard (<code>linkd init</code>)</h2>
       <p>
-        If you don't want to memorize flags and path arguments, <code>linkd</code> provides two interactive wizards to guide you through registering links effortlessly:
+        If you don't want to memorize command-line flags and path arguments, <code>linkd init</code> provides an interactive terminal guide that asks questions step-by-step to link any package:
       </p>
 
-      <h3>1. Quick Prompt Wizard (<code>linkd init</code>)</h3>
-      <p>
-        <code>linkd init</code> is an inline terminal questionnaire powered by Inquire. It asks quick questions sequentially without taking over your full terminal screen.
-      </p>
       <div class="code-wrapper">
         <div class="code-header"><span>Terminal</span></div>
         <pre><code><span class="t-prompt">$</span> <span class="t-cmd">linkd init</span>
 
 <span class="t-cyan">? Link type:</span>
-  > npm package
-    composer package
+  > npm package (JavaScript / TypeScript)
+    flutter / dart package (pubspec.yaml)
+    .NET package (C# / F# / NuGet)
+    ruby gem (Bundler)
+    swift package (SPM)
+    elixir package (Mix)
+    composer package (PHP)
     python (uv/pip/poetry)
     go module
-    rust (cargo)
+    rust (cargo crate)
     java/kotlin (jvm)
     custom path
 
@@ -587,42 +576,14 @@
 <span class="t-green">✓ Link '@acme/my-ui-kit' successfully registered and synced!</span></code></pre>
       </div>
 
-      <h3>2. Full-Screen Graphical TUI Wizard (<code>linkd wizard</code>)</h3>
-      <p>
-        <code>linkd wizard</code> launches a dedicated 5-step full-screen application built with Ratatui, featuring interactive text editing, breadcrumb navigation, validation error reporting, and keyboard shortcuts.
-      </p>
-      <div class="code-wrapper">
-        <div class="code-header"><span>Ratatui Interface</span></div>
-        <pre><code>┌────────────────────────────────────────────────────────────────────────┐
-│ linkd wizard — step 1/5                                                │
-│                                                                        │
-│   <span class="t-cyan">> npm package</span>                                                        │
-│     composer package                                                   │
-│     python (uv/pip/poetry)                                             │
-│     go module                                                          │
-│     rust (cargo)                                                       │
-│     java/kotlin (jvm)                                                  │
-│     custom path                                                        │
-│                                                                        │
-│   ↑/↓ select · Enter next · Esc cancel                                 │
-└────────────────────────────────────────────────────────────────────────┘
-│ Ctrl+C cancel · Left back                                              │
-└────────────────────────────────────────────────────────────────────────┘</code></pre>
-      </div>
-
-      <h4>Guided Steps Breakdown:</h4>
+      <h4>Step-by-Step Flow:</h4>
       <ul>
-        <li><strong>Step 1 (Link Type):</strong> Use <kbd>↑</kbd>/<kbd>↓</kbd> or <kbd>j</kbd>/<kbd>k</kbd> to pick your ecosystem.</li>
-        <li><strong>Step 2 (Source Directory):</strong> Type the path to your package with full inline cursor editing.</li>
-        <li><strong>Step 3 (Consumer Project):</strong> Type the path to the consuming application.</li>
-        <li><strong>Step 4 (Target Path):</strong> <em>(Conditional)</em> Specify custom destination if custom mode was selected in Step 1.</li>
-        <li><strong>Step 5 (Confirmation):</strong> Review the resolved link parameters. Press <kbd>d</kbd> to toggle daemon autostart on or off, and hit <kbd>Enter</kbd> to execute!</li>
+        <li><strong>Step 1 (Ecosystem):</strong> Use <kbd>↑</kbd>/<kbd>↓</kbd> arrows and <kbd>Enter</kbd> to pick from all 11 supported ecosystems.</li>
+        <li><strong>Step 2 (Source Path):</strong> Enter the relative or absolute path to your package directory.</li>
+        <li><strong>Step 3 (Consumer Path):</strong> Enter the path to your consuming project (or press Enter for current directory <code>.</code>).</li>
+        <li><strong>Step 4 (Custom Target):</strong> <em>(Custom path mode only)</em> Specify your custom destination folder inside the consumer.</li>
+        <li><strong>Step 5 (Autostart & Execution):</strong> Confirms daemon autostart, performs path loop-guard validation, and executes the initial incremental sync.</li>
       </ul>
-
-      <div class="callout tip">
-        <div class="callout-title">Keyboard Navigation Tips</div>
-        Press <kbd>Left</kbd> or <kbd>h</kbd> at any time during the wizard to return to previous steps and edit your input. Press <kbd>Esc</kbd> or <kbd>Ctrl+C</kbd> to exit cleanly without modifying anything.
-      </div>
 
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
@@ -740,7 +701,7 @@ WantedBy=default.target</code></pre>
           </tr>
           <tr>
             <td><code>linkd init</code></td>
-            <td><em>none</em> <em>(alias: <code>wizard</code>)</em></td>
+            <td><em>none</em></td>
             <td>Interactive guided setup wizard.</td>
           </tr>
           <tr>
@@ -801,7 +762,7 @@ WantedBy=default.target</code></pre>
 
       <div style="margin-top: 60px; padding: 24px; background-color: var(--bg-subtle); border-radius: var(--radius-lg); border: 1px solid var(--border-default); text-align: center">
         <h3 style="margin-top: 0">Ready to streamline your local development?</h3>
-        <p style="color: var(--fg-muted)">Install linkd v0.1.2 today and enjoy rock-solid local package synchronization.</p>
+        <p style="color: var(--fg-muted)">Install linkd v0.1.3 today and enjoy rock-solid local package synchronization.</p>
         <a href="index.html#install" class="btn btn-primary" style="margin-top: 8px">Get Started with linkd</a>
       </div>
     </main>
@@ -814,7 +775,7 @@ WantedBy=default.target</code></pre>
         <li><a href="index.html">Home</a></li>
         <li><a href="docs.html">Documentation</a></li>
         <li><a href="https://github.com/pinoox/linkd">GitHub</a></li>
-        <li><a href="https://github.com/pinoox/linkd/releases">Releases (v0.1.2)</a></li>
+        <li><a href="https://github.com/pinoox/linkd/releases">Releases (v0.1.3)</a></li>
         <li><a href="https://github.com/pinoox/linkd/blob/master/CHANGELOG.md">Changelog</a></li>
         <li><a href="https://github.com/pinoox/linkd/blob/master/LICENSE">MIT License</a></li>
       </ul>
