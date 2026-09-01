@@ -235,7 +235,7 @@ pub fn enqueue_reconcile(queue: &ReconcileQueue, id: Option<Uuid>) {
 
 pub fn drain_reconcile_queue(queue: &ReconcileQueue, registry: &RegistryStore) -> Vec<Uuid> {
     let mut guard = queue.lock().expect("lock");
-    let items = std::mem::take(&mut *guard);
+    let mut items = std::mem::take(&mut *guard);
     drop(guard);
 
     if items.iter().any(|id| *id == Uuid::nil()) {
@@ -244,6 +244,8 @@ pub fn drain_reconcile_queue(queue: &ReconcileQueue, registry: &RegistryStore) -
             .map(|r| r.links.iter().map(|l| l.id).collect())
             .unwrap_or_default()
     } else {
+        items.sort();
+        items.dedup();
         items
     }
 }

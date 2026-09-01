@@ -100,16 +100,26 @@ impl RegistryStore {
         Ok(result)
     }
 
-    pub fn add_link(&self, entry: linkd_core::LinkEntry) -> LinkdResult<linkd_core::LinkEntry> {
+    pub fn add_link(&self, mut entry: linkd_core::LinkEntry) -> LinkdResult<linkd_core::LinkEntry> {
+        entry.source_path = linkd_core::clean_path(&entry.source_path);
+        entry.consumer_root = linkd_core::clean_path(&entry.consumer_root);
+        entry.sync_target = linkd_core::clean_path(&entry.sync_target);
+        if let Some(ct) = &mut entry.custom_target {
+            *ct = linkd_core::clean_path(ct);
+        }
+
         self.with_mut(|reg| {
-            if reg.links.iter().any(|l| {
-                l.package_name == entry.package_name && l.consumer_root == entry.consumer_root
+            if let Some(existing) = reg.links.iter_mut().find(|l| {
+                (linkd_core::clean_path(&l.source_path)
+                    == linkd_core::clean_path(&entry.source_path)
+                    && linkd_core::clean_path(&l.consumer_root)
+                        == linkd_core::clean_path(&entry.consumer_root))
+                    || linkd_core::clean_path(&l.sync_target)
+                        == linkd_core::clean_path(&entry.sync_target)
             }) {
-                return Err(LinkdError::Other(format!(
-                    "link already exists for {} in {}",
-                    entry.package_name,
-                    linkd_core::display_path(&entry.consumer_root)
-                )));
+                // Update existing link in-place instead of creating duplicate
+                *existing = entry.clone();
+                return Ok(entry);
             }
             reg.links.push(entry.clone());
             Ok(entry)

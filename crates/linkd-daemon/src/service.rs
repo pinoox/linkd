@@ -124,14 +124,36 @@ impl DaemonService {
                         if !should_reconcile {
                             continue;
                         }
-                        info!("debounced event {:?} paths={}", evt.key, evt.paths.len());
+
+                        let current_registry = registry_clone.load().unwrap_or_default();
+                        let affected_ids =
+                            matching_link_ids_for_event(&evt.paths, &current_registry.links);
+
+                        if affected_ids.is_empty() {
+                            continue;
+                        }
+
+                        info!(
+                            "debounced event {:?} paths={} affected_links={}",
+                            evt.key,
+                            evt.paths.len(),
+                            affected_ids.len()
+                        );
                         let _ = events_tx.send(linkd_ipc::DaemonEvent::LogMessage {
                             timestamp: chrono::Utc::now(),
                             level: "WATCH".into(),
                             ecosystem: None,
-                            message: format!("event {:?} ({} paths)", evt.key, evt.paths.len()),
+                            message: format!(
+                                "event {:?} ({} paths, {} links affected)",
+                                evt.key,
+                                evt.paths.len(),
+                                affected_ids.len()
+                            ),
                         });
-                        enqueue_reconcile(&queue_clone, None);
+
+                        for link_id in affected_ids {
+                            enqueue_reconcile(&queue_clone, Some(link_id));
+                        }
                     }
 
                     let ids = drain_reconcile_queue(&queue_clone, &registry_clone);
@@ -158,6 +180,33 @@ impl DaemonService {
     pub fn pm_hint_for_consumer(&self, consumer: &std::path::Path) -> Option<String> {
         pm_install_hint(consumer)
     }
+}
+
+fn matching_link_ids_for_event(
+    paths: &[std::path::PathBuf],
+    links: &[linkd_core::LinkEntry],
+) -> Vec<uuid::Uuid> {
+    let mut matched_ids = Vec::new();
+    for path in paths {
+        let clean_evt_path = linkd_core::clean_path(path);
+        for link in links {
+            let clean_src = linkd_core::clean_path(&link.source_path);
+            let markers = completion_markers_for_link(link);
+
+            let is_source_match = clean_evt_path.starts_with(&clean_src);
+            let is_marker_match = markers.iter().any(|m| {
+                let clean_m = linkd_core::clean_path(m);
+                clean_evt_path == clean_m || clean_evt_path.starts_with(&clean_m)
+            });
+
+            if is_source_match || is_marker_match {
+                if !matched_ids.contains(&link.id) {
+                    matched_ids.push(link.id);
+                }
+            }
+        }
+    }
+    matched_ids
 }
 
 fn watch_paths_for_links(links: &[linkd_core::LinkEntry]) -> Vec<std::path::PathBuf> {

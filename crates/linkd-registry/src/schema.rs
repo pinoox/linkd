@@ -24,7 +24,7 @@ impl Default for RegistryFile {
 }
 
 impl RegistryFile {
-    /// Upgrade v1 registry entries in-place (serde defaults fill new fields).
+    /// Upgrade v1 registry entries in-place (serde defaults fill new fields) and deduplicate paths.
     pub fn migrate(mut self) -> Self {
         if self.version == REGISTRY_VERSION_V1 {
             for link in &mut self.links {
@@ -34,6 +34,34 @@ impl RegistryFile {
             }
             self.version = REGISTRY_VERSION;
         }
+
+        // Clean paths for all existing links (strip Windows \\?\ prefix, etc.)
+        for link in &mut self.links {
+            link.source_path = linkd_core::clean_path(&link.source_path);
+            link.consumer_root = linkd_core::clean_path(&link.consumer_root);
+            link.sync_target = linkd_core::clean_path(&link.sync_target);
+            if let Some(ct) = &mut link.custom_target {
+                *ct = linkd_core::clean_path(ct);
+            }
+        }
+
+        // Deduplicate links with identical (source_path, consumer_root) or identical sync_target
+        let mut deduped: Vec<LinkEntry> = Vec::new();
+        for link in self.links {
+            let is_dup = deduped.iter().any(|existing| {
+                (linkd_core::clean_path(&existing.source_path)
+                    == linkd_core::clean_path(&link.source_path)
+                    && linkd_core::clean_path(&existing.consumer_root)
+                        == linkd_core::clean_path(&link.consumer_root))
+                    || linkd_core::clean_path(&existing.sync_target)
+                        == linkd_core::clean_path(&link.sync_target)
+            });
+            if !is_dup {
+                deduped.push(link);
+            }
+        }
+        self.links = deduped;
+
         self
     }
 }

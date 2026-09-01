@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.4] - 2026-09-01
+
+### 🚀 Public Release (v0.1.4)
+
+- **Targeted Event Dispatching**: File change events now trigger reconciliation **only for matching link IDs** (by prefix matching `source_path` and lockfile markers) instead of running a global sync for all packages in the registry.
+- **Link Registry Deduplication**: Normalized paths in `RegistryFile::migrate` and `RegistryStore::add_link` (including Windows `\\?\` prefix removal), ensuring identical links cannot be duplicated and existing duplicates are merged.
+
+---
+
 ## [0.1.3] - 2026-09-01
 
 ### 🚀 Public Release (v0.1.3)
@@ -173,5 +182,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.1.4]: https://github.com/pinoox/linkd/releases/tag/v0.1.4
 [0.1.3]: https://github.com/pinoox/linkd/releases/tag/v0.1.3
 [0.1.2]: https://github.com/pinoox/linkd/releases/tag/v0.1.2
