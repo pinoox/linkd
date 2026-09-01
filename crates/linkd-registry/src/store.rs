@@ -102,11 +102,9 @@ impl RegistryStore {
 
     pub fn add_link(&self, entry: linkd_core::LinkEntry) -> LinkdResult<linkd_core::LinkEntry> {
         self.with_mut(|reg| {
-            if reg
-                .links
-                .iter()
-                .any(|l| l.package_name == entry.package_name && l.consumer_root == entry.consumer_root)
-            {
+            if reg.links.iter().any(|l| {
+                l.package_name == entry.package_name && l.consumer_root == entry.consumer_root
+            }) {
                 return Err(LinkdError::Other(format!(
                     "link already exists for {} in {}",
                     entry.package_name,

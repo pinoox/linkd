@@ -50,8 +50,8 @@ impl PinnedStore {
         if let Some(parent) = self.path.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
-        let json = serde_json::to_string_pretty(file)
-            .map_err(|e| LinkdError::Registry(e.to_string()))?;
+        let json =
+            serde_json::to_string_pretty(file).map_err(|e| LinkdError::Registry(e.to_string()))?;
         std::fs::write(&self.path, json).map_err(|e| LinkdError::io(&self.path, e))
     }
 

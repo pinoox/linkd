@@ -22,9 +22,12 @@ pub async fn run(
         custom_name
     } else {
         let adapter = adapter_for(eco);
-        adapter
-            .package_name(&abs_path)
-            .map_err(|e| anyhow::anyhow!("could not auto-detect package name in {}: {e}", display_path(&abs_path)))?
+        adapter.package_name(&abs_path).map_err(|e| {
+            anyhow::anyhow!(
+                "could not auto-detect package name in {}: {e}",
+                display_path(&abs_path)
+            )
+        })?
     };
 
     let store = PinnedStore::default();

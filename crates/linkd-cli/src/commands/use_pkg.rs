@@ -31,7 +31,13 @@ pub async fn run(
             } else {
                 let list_str = all
                     .iter()
-                    .map(|p| format!("  • {} ({})", p.name.clone().cyan(), display_path(&p.path).dark_grey()))
+                    .map(|p| {
+                        format!(
+                            "  • {} ({})",
+                            p.name.clone().cyan(),
+                            display_path(&p.path).dark_grey()
+                        )
+                    })
                     .collect::<Vec<_>>()
                     .join("\n");
                 anyhow::bail!(

@@ -104,7 +104,7 @@ try {
 
 # Step 4: Verification
 Write-Host "  [4/4] 🔍 Verifying installation..." -ForegroundColor Cyan
-$VersionString = "0.1.0"
+$VersionString = "0.1.2"
 if (Test-Path $ExePath) {
     try {
         $VersionOutput = & "$ExePath" -v 2>$null
@@ -127,10 +127,10 @@ Write-Host "  │  • Binary   : $ExePath" -ForegroundColor White
 Write-Host "  │  • PATH     : Automatically added to current session & User│" -ForegroundColor White
 Write-Host "  ├────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
 Write-Host "  │  🚀 Quick Start Commands:                                  │" -ForegroundColor Cyan
-Write-Host "  │    linkd wizard          # 5-step guided interactive setup │" -ForegroundColor Gray
-Write-Host "  │    linkd link <src> <app># Instant local package linking   │" -ForegroundColor Gray
-Write-Host "  │    linkd monitor         # Real-time TUI dashboard         │" -ForegroundColor Gray
-Write-Host "  │    linkd version         # Display version & ecosystems    │" -ForegroundColor Gray
+Write-Host "  │    linkd init            # Guided interactive setup wizard │" -ForegroundColor Gray
+Write-Host "  │    linkd register        # Register current package        │" -ForegroundColor Gray
+Write-Host "  │    linkd use <pkg>       # Link registered package in app  │" -ForegroundColor Gray
+Write-Host "  │    linkd monitor         # Open real-time live dashboard   │" -ForegroundColor Gray
 Write-Host "  │    linkd doctor          # Check environment health        │" -ForegroundColor Gray
 Write-Host "  └────────────────────────────────────────────────────────────┘" -ForegroundColor Green
 Write-Host ""

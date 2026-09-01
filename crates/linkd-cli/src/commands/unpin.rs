@@ -11,6 +11,9 @@ pub async fn run(package_name: &str) -> anyhow::Result<()> {
         );
         Ok(())
     } else {
-        anyhow::bail!("Package '{}' was not found in registered packages.", package_name)
+        anyhow::bail!(
+            "Package '{}' was not found in registered packages.",
+            package_name
+        )
     }
 }

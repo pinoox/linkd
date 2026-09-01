@@ -116,9 +116,9 @@ fi
 
 # Step 4: Verification
 echo -e "  ${CYAN}[4/4]${NC} 🔍 Verifying installation..."
-VERSION_STR="v0.1.0"
+VERSION_STR="v0.1.2"
 if [ -x "$TARGET_BIN" ]; then
-  VERSION_STR="$("$TARGET_BIN" -v 2>/dev/null || echo "v0.1.0")"
+  VERSION_STR="$("$TARGET_BIN" -v 2>/dev/null || echo "v0.1.2")"
 fi
 
 echo -e ""
@@ -130,10 +130,10 @@ echo -e "${GREEN}  │${NC}  • Binary   : ${TARGET_BIN}"
 echo -e "${GREEN}  │${NC}  • PATH     : Automatically configured in shell profile"
 echo -e "${GREEN}  ├────────────────────────────────────────────────────────────┤${NC}"
 echo -e "${GREEN}  │${NC}  ${CYAN}🚀 Quick Start Commands:${NC}                                  ${GREEN}│${NC}"
-echo -e "${GREEN}  │${NC}    ${GRAY}linkd wizard          # 5-step guided interactive setup${NC} ${GREEN}│${NC}"
-echo -e "${GREEN}  │${NC}    ${GRAY}linkd link <src> <app># Instant local package linking  ${NC} ${GREEN}│${NC}"
-echo -e "${GREEN}  │${NC}    ${GRAY}linkd monitor         # Real-time TUI dashboard        ${NC} ${GREEN}│${NC}"
-echo -e "${GREEN}  │${NC}    ${GRAY}linkd version         # Display version & ecosystems   ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd init            # Guided interactive setup wizard${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd register        # Register current package       ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd use <pkg>       # Link registered package in app ${NC} ${GREEN}│${NC}"
+echo -e "${GREEN}  │${NC}    ${GRAY}linkd monitor         # Real-time live dashboard       ${NC} ${GREEN}│${NC}"
 echo -e "${GREEN}  │${NC}    ${GRAY}linkd doctor          # Check environment health       ${NC} ${GREEN}│${NC}"
 echo -e "${GREEN}  └────────────────────────────────────────────────────────────┘${NC}"
 echo -e ""

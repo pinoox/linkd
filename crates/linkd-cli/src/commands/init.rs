@@ -6,7 +6,11 @@ use linkd_core::{clean_path, display_path, normalize_path, Ecosystem};
 
 pub async fn run() -> anyhow::Result<()> {
     println!();
-    println!("  {} {}", "⚡ linkd init".cyan().bold(), "— Interactive Setup".dark_grey());
+    println!(
+        "  {} {}",
+        "⚡ linkd init".cyan().bold(),
+        "— Interactive Setup".dark_grey()
+    );
     println!();
 
     let link_type = Select::new(
@@ -49,8 +53,16 @@ pub async fn run() -> anyhow::Result<()> {
     let consumer_path = clean_path(&normalize_path(&PathBuf::from(consumer_raw)));
 
     println!();
-    println!("  {} {}", "Source  :".white().bold(), display_path(&source_path).cyan());
-    println!("  {} {}", "Consumer:".white().bold(), display_path(&consumer_path).cyan());
+    println!(
+        "  {} {}",
+        "Source  :".white().bold(),
+        display_path(&source_path).cyan()
+    );
+    println!(
+        "  {} {}",
+        "Consumer:".white().bold(),
+        display_path(&consumer_path).cyan()
+    );
 
     #[cfg(target_os = "macos")]
     let strategy_hint = "reflink (APFS CoW)";

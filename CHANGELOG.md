@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.0] - 2026-09-01
+## [0.1.2] - 2026-09-01
 
-### 🚀 Initial Public Release
+### 🚀 Public Release (v0.1.2)
 
 `linkd` is a continuous local-dev package link daemon engineered to eliminate fragile symlinks and broken package registries across modern multi-ecosystem monorepos.
 
@@ -106,4 +106,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[0.1.0]: https://github.com/pinoox/linkd/releases/tag/v0.1.0
+[0.1.2]: https://github.com/pinoox/linkd/releases/tag/v0.1.2

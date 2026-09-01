@@ -102,10 +102,7 @@ fn print_result_sync_message(
         "✓ Linked {package_name} → {}",
         linkd_core::display_path(consumer)
     );
-    println!(
-        "  sync target: {}",
-        linkd_core::display_path(sync_target)
-    );
+    println!("  sync target: {}", linkd_core::display_path(sync_target));
     if let Some(pm) = detected_pm {
         println!("  detected: {pm}");
     }
