@@ -14,6 +14,10 @@ members = [
     "crates/linkd-adapters-cargo",
     "crates/linkd-adapters-jvm",
     "crates/linkd-adapters-dart",
+    "crates/linkd-adapters-dotnet",
+    "crates/linkd-adapters-ruby",
+    "crates/linkd-adapters-swift",
+    "crates/linkd-adapters-elixir",
     "crates/linkd-adapters",
     "crates/linkd-daemon",
     "crates/linkd-cli",
@@ -65,6 +69,10 @@ linkd-adapters-go = { path = "crates/linkd-adapters-go" }
 linkd-adapters-cargo = { path = "crates/linkd-adapters-cargo" }
 linkd-adapters-jvm = { path = "crates/linkd-adapters-jvm" }
 linkd-adapters-dart = { path = "crates/linkd-adapters-dart" }
+linkd-adapters-dotnet = { path = "crates/linkd-adapters-dotnet" }
+linkd-adapters-ruby = { path = "crates/linkd-adapters-ruby" }
+linkd-adapters-swift = { path = "crates/linkd-adapters-swift" }
+linkd-adapters-elixir = { path = "crates/linkd-adapters-elixir" }
 linkd-adapters = { path = "crates/linkd-adapters" }
 linkd-daemon = { path = "crates/linkd-daemon" }
 

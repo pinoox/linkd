@@ -92,6 +92,65 @@ linkd link ./packages/flutter_ui_kit ./apps/flutter_mobile_app
 # Live-syncs Dart code and assets across hot reloads!
 # Survives 'flutter pub get' or 'dart pub get'`
   },
+  dotnet: {
+    title: '🔷 .NET (C# / F# / NuGet)',
+    desc: 'Continuous local-dev linking for .NET solutions and Class Libraries without modifying *.csproj PackageReference lines to ProjectReference.',
+    features: [
+      'Extracts PackageId and Project metadata from *.csproj',
+      'Syncs to consumer packages/ or local NuGet caches',
+      'Watches obj/project.assets.json and packages.lock.json',
+      'Filters obj/, .vs/, and TestResults/ automatically'
+    ],
+    code: `# Link a shared C# library into a .NET API service
+linkd link ./src/Acme.Logging ./src/Acme.ApiServer
+
+# Live-syncs compiled DLLs and source files without touching *.csproj!`
+  },
+  ruby: {
+    title: '💎 Ruby (Gems & Bundler)',
+    desc: 'Develop local gems seamlessly alongside Ruby on Rails and Sinatra applications without manual gem "path: ..." edits in Gemfile.',
+    features: [
+      'Extracts gem name from *.gemspec declarations',
+      'Routes into consumer vendor/bundle/gems/<gem_name>',
+      'Watches Gemfile.lock for bundle install events',
+      'Survives bundle install and bundle update'
+    ],
+    code: `# Link a local Ruby gem into a Rails app
+linkd link ./gems/acme-auth ./apps/rails-app
+
+# Available immediately via bundler:
+bundle exec rspec`
+  },
+  swift: {
+    title: '🐦 Swift (Swift Package Manager)',
+    desc: 'Native Swift Package Manager (SPM) local dependency linking. Zero-config synchronization directly into .build/checkouts for Xcode and CLI builds.',
+    features: [
+      'Parses package name from Package.swift manifest',
+      'Syncs directly into consumer .build/checkouts/<pkg>',
+      'Watches Package.resolved for SPM resolution events',
+      'Filters .build/, .swiftpm/, and DerivedData'
+    ],
+    code: `# Link a Swift package into an SPM application
+linkd link ./packages/SwiftUiKit ./apps/SwiftApp
+
+# Compiles immediately via SPM:
+swift build`
+  },
+  elixir: {
+    title: '💧 Elixir (Mix & Phoenix)',
+    desc: 'Effortlessly develop local Elixir dependencies in Phoenix and OTP applications without altering mix.exs path dependencies.',
+    features: [
+      'Parses app name from mix.exs def project declarations',
+      'Syncs directly into consumer deps/<app> folder',
+      'Watches mix.lock for mix deps.get events',
+      'Filters _build/ and .elixir_ls automatically'
+    ],
+    code: `# Link an Elixir library into a Phoenix application
+linkd link ./plugins/elixir_auth ./apps/phoenix_web
+
+# Compiles directly in Phoenix:
+mix compile`
+  },
   composer: {
     title: '🐘 PHP (Composer)',
     desc: 'Seamless local PHP package development. Automatically parses vendor/package namespaces from composer.json, routes to consumer/vendor, and notifies you when composer dump-autoload is needed for new classmaps.',

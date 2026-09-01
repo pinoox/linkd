@@ -748,10 +748,14 @@ dependencies = [
  "linkd-adapters-cargo",
  "linkd-adapters-composer",
  "linkd-adapters-dart",
+ "linkd-adapters-dotnet",
+ "linkd-adapters-elixir",
  "linkd-adapters-go",
  "linkd-adapters-jvm",
  "linkd-adapters-npm",
  "linkd-adapters-python",
+ "linkd-adapters-ruby",
+ "linkd-adapters-swift",
  "linkd-core",
  "linkd-pack",
  "linkd-sync",
@@ -786,6 +790,24 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-dart"
+version = "0.1.2"
+dependencies = [
+ "linkd-core",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-dotnet"
+version = "0.1.2"
+dependencies = [
+ "linkd-core",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-elixir"
 version = "0.1.2"
 dependencies = [
  "linkd-core",
@@ -835,6 +857,24 @@ dependencies = [
  "linkd-core",
  "serde",
  "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-ruby"
+version = "0.1.2"
+dependencies = [
+ "linkd-core",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "linkd-adapters-swift"
+version = "0.1.2"
+dependencies = [
+ "linkd-core",
  "tempfile",
  "walkdir",
 ]

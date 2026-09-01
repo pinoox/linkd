@@ -38,6 +38,14 @@ enum EcosystemArg {
     Jvm,
     Dart,
     Flutter,
+    Dotnet,
+    Csharp,
+    Ruby,
+    Gem,
+    Swift,
+    Spm,
+    Elixir,
+    Mix,
     Custom,
 }
 
@@ -51,6 +59,10 @@ impl From<EcosystemArg> for Ecosystem {
             EcosystemArg::Cargo => Ecosystem::Cargo,
             EcosystemArg::Jvm => Ecosystem::Jvm,
             EcosystemArg::Dart | EcosystemArg::Flutter => Ecosystem::Dart,
+            EcosystemArg::Dotnet | EcosystemArg::Csharp => Ecosystem::Dotnet,
+            EcosystemArg::Ruby | EcosystemArg::Gem => Ecosystem::Ruby,
+            EcosystemArg::Swift | EcosystemArg::Spm => Ecosystem::Swift,
+            EcosystemArg::Elixir | EcosystemArg::Mix => Ecosystem::Elixir,
             EcosystemArg::Custom => Ecosystem::Custom,
         }
     }
@@ -246,13 +258,16 @@ async fn main() -> anyhow::Result<()> {
                     "version": env!("CARGO_PKG_VERSION"),
                     "target_os": std::env::consts::OS,
                     "target_arch": std::env::consts::ARCH,
-                    "ecosystems": ["npm", "pnpm", "yarn", "bun", "composer", "python", "go", "cargo", "jvm", "dart", "flutter", "custom"]
+                    "ecosystems": [
+                        "npm", "pnpm", "yarn", "bun", "composer", "python", "go", "cargo",
+                        "jvm", "dart", "flutter", "dotnet", "ruby", "swift", "elixir", "custom"
+                    ]
                 });
                 println!("{}", serde_json::to_string_pretty(&info)?);
             } else {
                 println!("linkd v{}", env!("CARGO_PKG_VERSION"));
                 println!("Continuous local-dev link daemon for multi-ecosystem monorepos");
-                println!("Supported ecosystems: JS/TS, PHP Composer, Python, Go, Rust Cargo, JVM, Dart/Flutter, Custom");
+                println!("Supported ecosystems: JS/TS, Flutter/Dart, .NET (C#/F#), Ruby (Bundler), Swift (SPM), Elixir (Mix), PHP Composer, Python, Go, Rust Cargo, JVM, Custom");
             }
             Ok(())
         }

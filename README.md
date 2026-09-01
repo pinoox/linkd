@@ -37,11 +37,15 @@
 - [🌐 Supported Ecosystems & Examples](#-supported-ecosystems--examples)
   - [1. JavaScript / TypeScript (npm, pnpm, yarn, bun)](#1-javascript--typescript-npm-pnpm-yarn-bun)
   - [2. Flutter & Dart (pubspec.yaml)](#2-flutter--dart-pubspecyaml)
-  - [3. PHP (Composer)](#3-php-composer)
-  - [4. Python (uv, pip, poetry)](#4-python-uv-pip-poetry)
-  - [5. Go (Go Modules & Vendor)](#5-go-go-modules--vendor)
-  - [6. Rust (Cargo)](#6-rust-cargo)
-  - [7. Custom Directory](#7-custom-directory-framework-agnostic)
+  - [3. .NET (C# / F# / NuGet)](#3-net-c--f--nuget)
+  - [4. Ruby (Gems / Bundler)](#4-ruby-gems--bundler)
+  - [5. Swift (SPM / Package.swift)](#5-swift-spm--packageswift)
+  - [6. Elixir (Mix / mix.exs)](#6-elixir-mix--mixexs)
+  - [7. PHP (Composer)](#7-php-composer)
+  - [8. Python (uv, pip, poetry)](#8-python-uv-pip-poetry)
+  - [9. Go (Go Modules & Vendor)](#9-go-go-modules--vendor)
+  - [10. Rust (Cargo)](#10-rust-cargo)
+  - [11. Custom Directory](#11-custom-directory-framework-agnostic)
 - [🖥️ Interactive Terminal UIs](#️-interactive-terminal-uis)
   - [Live Monitor Dashboard (`linkd monitor` / `linkd top`)](#-live-monitor-dashboard-linkd-monitor--linkd-top)
   - [Setup Wizards Tutorial (`linkd init` vs `linkd wizard`)](#-setup-wizards-tutorial-linkd-init-vs-linkd-wizard)
@@ -176,12 +180,16 @@ linkd init
 
 ## 🌐 Supported Ecosystems & Examples
 
-`linkd` natively detects and adapts to 7 different environments:
+`linkd` natively detects and adapts to 11 different environments:
 
 | Ecosystem | Manifest | Target Directory | Reinstall Watch Markers |
 |---|---|---|---|
 | 🟢 **JavaScript / TypeScript** | `package.json` | `node_modules/<pkg>` | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb` |
 | 💙 **Flutter / Dart** | `pubspec.yaml` | `.dart_tool/packages/<pkg>` | `pubspec.lock`, `.dart_tool/package_config.json`, `.packages` |
+| 🔷 **.NET (C# / F# / NuGet)** | `*.csproj`, `Directory.Build.props` | `packages/<package_id>` | `obj/project.assets.json`, `packages.lock.json` |
+| 💎 **Ruby (Bundler / Gems)** | `*.gemspec`, `Gemfile` | `vendor/bundle/gems/<gem>` | `Gemfile.lock` |
+| 🐦 **Swift (SPM)** | `Package.swift` | `.build/checkouts/<pkg>` | `Package.resolved` |
+| 💧 **Elixir (Mix)** | `mix.exs` | `deps/<pkg>` | `mix.lock` |
 | 🐘 **PHP (Composer)** | `composer.json` | `vendor/<vendor>/<pkg>` | `composer.lock`, `vendor/composer/installed.json` |
 | 🐍 **Python (uv/pip/poetry)** | `pyproject.toml`, `setup.py` | `.venv/Lib/site-packages/<pkg>` | `uv.lock`, `poetry.lock`, `Pipfile.lock`, `requirements.txt` |
 | 🐹 **Go (Go Modules)** | `go.mod` | `vendor/<module_path>` | `go.sum`, `go.work.sum`, `go.work` |
@@ -210,7 +218,31 @@ linkd link ./packages/flutter_ui_kit ./apps/flutter_mobile_app
 # Live-syncs Dart code and assets across hot reloads seamlessly
 ```
 
-#### 3. PHP (Composer)
+#### 3. .NET (C# / F# / NuGet)
+```bash
+# Detects .csproj / PackageId and links into consumer's packages/
+linkd link ./src/Acme.Logging ./src/Acme.ApiServer
+```
+
+#### 4. Ruby (Gems / Bundler)
+```bash
+# Parses *.gemspec and links into consumer's vendor/bundle/gems
+linkd link ./gems/acme-auth ./apps/rails-app
+```
+
+#### 5. Swift (SPM / Package.swift)
+```bash
+# Detects Package.swift and links into consumer's .build/checkouts
+linkd link ./packages/SwiftUiKit ./apps/SwiftApp
+```
+
+#### 6. Elixir (Mix / mix.exs)
+```bash
+# Detects mix.exs and links into consumer's deps/ directory
+linkd link ./plugins/elixir_auth ./apps/phoenix_web
+```
+
+#### 7. PHP (Composer)
 ```bash
 # Detects composer.json, parses vendor/package namespace, links into vendor/acme/logger
 linkd link ./packages/acme-logger ./apps/laravel-api
@@ -218,26 +250,26 @@ linkd link ./packages/acme-logger ./apps/laravel-api
 # If new classes are added, linkd reminds you if `composer dump-autoload` is needed
 ```
 
-#### 4. Python (uv, pip, poetry)
+#### 8. Python (uv, pip, poetry)
 ```bash
 # Links package into virtualenv site-packages (.venv/Lib/site-packages or Unix lib/python*/...)
 # Automatically excludes __pycache__, *.pyc, and .pytest_cache
 linkd link ./packages/ml-core ./apps/fastapi-service
 ```
 
-#### 5. Go (Go Modules & Vendor)
+#### 9. Go (Go Modules & Vendor)
 ```bash
 # Links Go package into consumer's vendor directory according to module declaration
 linkd link ./packages/auth-module ./apps/microservice
 ```
 
-#### 6. Rust (Cargo)
+#### 10. Rust (Cargo)
 ```bash
 # Vendors local crate into consumer's vendor folder without modifying Cargo.toml
 linkd link ./crates/shared-types ./apps/backend-service
 ```
 
-#### 7. Custom Directory (Framework-Agnostic)
+#### 11. Custom Directory (Framework-Agnostic)
 ```bash
 # Sync any folder into any arbitrary destination with built-in loop guard protection
 linkd link ./shared-assets ./apps/electron-app --target ./apps/electron-app/src/assets/shared

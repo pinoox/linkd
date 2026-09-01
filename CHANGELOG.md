@@ -47,6 +47,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatically resolves sync target to consumer `.dart_tool/packages/<package_name>`.
   - Filters `.dart_tool`, `.pub-cache`, `build/`, platform build folders, `.git`, `.idea`, and `.vscode`.
   - Monitors `pubspec.lock`, `.dart_tool/package_config.json`, and `.packages` for reinstall events.
+- **.NET & C#/F# (`linkd-adapters-dotnet`)**:
+  - Auto-detects `*.csproj` and `Directory.Build.props`, parsing `PackageId` or project name.
+  - Routes sync targets to consumer `packages/<package_id>` or local NuGet cache.
+  - Monitors `obj/project.assets.json` and `packages.lock.json`.
+- **Ruby & Gems (`linkd-adapters-ruby`)**:
+  - Auto-detects `*.gemspec` and `Gemfile`, parsing gem names.
+  - Routes sync targets to consumer `vendor/bundle/gems/<gem_name>`.
+  - Monitors `Gemfile.lock` for Bundler install events.
+- **Swift & SPM (`linkd-adapters-swift`)**:
+  - Auto-detects `Package.swift` manifests and parses package name.
+  - Routes sync targets to consumer `.build/checkouts/<package_name>`.
+  - Monitors `Package.resolved` for SPM resolution events.
+- **Elixir & Mix (`linkd-adapters-elixir`)**:
+  - Auto-detects `mix.exs` and parses `app:` name.
+  - Routes sync targets to consumer `deps/<app_name>`.
+  - Monitors `mix.lock` for Mix dependency events.
 - **Custom Directories (`linkd-adapters-custom`)**:
   - Framework-agnostic linking for arbitrary asset directories and internal libraries via `--target`.
 

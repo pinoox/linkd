@@ -18,6 +18,10 @@ pub async fn run() -> anyhow::Result<()> {
         vec![
             "JavaScript / TypeScript (npm, pnpm, yarn, bun)",
             "Flutter / Dart (pubspec.yaml)",
+            ".NET (C# / F# / NuGet)",
+            "Ruby (Gem / Bundler)",
+            "Swift (SPM / Package.swift)",
+            "Elixir (Mix / mix.exs)",
             "PHP (Composer)",
             "Python (uv, pip, poetry)",
             "Go (go.mod / vendor)",
@@ -36,6 +40,10 @@ pub async fn run() -> anyhow::Result<()> {
             (Some(PathBuf::from(target)), Some(Ecosystem::Custom))
         }
         "Flutter / Dart (pubspec.yaml)" => (None, Some(Ecosystem::Dart)),
+        ".NET (C# / F# / NuGet)" => (None, Some(Ecosystem::Dotnet)),
+        "Ruby (Gem / Bundler)" => (None, Some(Ecosystem::Ruby)),
+        "Swift (SPM / Package.swift)" => (None, Some(Ecosystem::Swift)),
+        "Elixir (Mix / mix.exs)" => (None, Some(Ecosystem::Elixir)),
         "PHP (Composer)" => (None, Some(Ecosystem::Composer)),
         "Python (uv, pip, poetry)" => (None, Some(Ecosystem::Python)),
         "Go (go.mod / vendor)" => (None, Some(Ecosystem::Go)),

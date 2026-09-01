@@ -3,8 +3,8 @@ mod dispatch;
 mod validate;
 
 pub use custom::{
-    CargoAdapter, ComposerAdapter, CustomAdapter, DartAdapter, GoAdapter, JvmAdapter, NpmAdapter,
-    PythonAdapter,
+    CargoAdapter, ComposerAdapter, CustomAdapter, DartAdapter, DotnetAdapter, ElixirAdapter,
+    GoAdapter, JvmAdapter, NpmAdapter, PythonAdapter, RubyAdapter, SwiftAdapter,
 };
 pub use dispatch::{
     adapter_for, build_allowlist_for_link, completion_markers_for_link, detect_ecosystem,

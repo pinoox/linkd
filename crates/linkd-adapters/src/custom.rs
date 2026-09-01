@@ -376,3 +376,167 @@ impl EcosystemAdapter for DartAdapter {
         linkd_adapters_dart::post_sync_hint(source, consumer)
     }
 }
+
+pub struct DotnetAdapter;
+
+impl EcosystemAdapter for DotnetAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Dotnet
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_dotnet::detect_dotnet(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_dotnet::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_dotnet::resolve_dotnet_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_dotnet::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_dotnet::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("packages")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_dotnet::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct RubyAdapter;
+
+impl EcosystemAdapter for RubyAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Ruby
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_ruby::detect_ruby(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_ruby::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_ruby::resolve_ruby_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_ruby::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_ruby::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("vendor").join("bundle")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_ruby::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct SwiftAdapter;
+
+impl EcosystemAdapter for SwiftAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Swift
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_swift::detect_swift(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_swift::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_swift::resolve_swift_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_swift::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_swift::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join(".build").join("checkouts")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_swift::post_sync_hint(source, consumer)
+    }
+}
+
+pub struct ElixirAdapter;
+
+impl EcosystemAdapter for ElixirAdapter {
+    fn ecosystem(&self) -> Ecosystem {
+        Ecosystem::Elixir
+    }
+
+    fn detect(&self, source: &Path, consumer: &Path) -> bool {
+        linkd_adapters_elixir::detect_elixir(source, consumer)
+    }
+
+    fn package_name(&self, source: &Path) -> LinkdResult<String> {
+        linkd_adapters_elixir::parse_package_name(source)
+    }
+
+    fn resolve_target(
+        &self,
+        consumer: &Path,
+        package_name: &str,
+        _custom_target: Option<&Path>,
+    ) -> LinkdResult<ResolvedSyncTarget> {
+        linkd_adapters_elixir::resolve_elixir_target(consumer, package_name)
+    }
+
+    fn completion_markers(&self, consumer: &Path) -> Vec<PathBuf> {
+        linkd_adapters_elixir::completion_markers(consumer)
+    }
+
+    fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
+        linkd_adapters_elixir::list_files(source)
+    }
+
+    fn write_guard_roots(&self, consumer: &Path) -> Vec<PathBuf> {
+        vec![consumer.join("deps")]
+    }
+
+    fn post_sync_hint(&self, source: &Path, consumer: &Path) -> Option<String> {
+        linkd_adapters_elixir::post_sync_hint(source, consumer)
+    }
+}

@@ -159,7 +159,7 @@ pub fn print_welcome_guide() {
     println!(
         "    {} {}",
         "Supported:".white().bold(),
-        "JS/TS (npm/pnpm/yarn/bun) • Flutter/Dart • PHP (Composer) • Python (uv/pip) • Go • Rust • JVM • Custom"
+        "JS/TS • Flutter/Dart • .NET • Ruby • Swift • Elixir • PHP • Python • Go • Rust • JVM • Custom"
             .dark_grey()
     );
     println!(

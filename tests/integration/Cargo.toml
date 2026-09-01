@@ -83,4 +83,21 @@ path = "jvm_sync.rs"
 name = "dart_sync"
 path = "dart_sync.rs"
 
+[[test]]
+name = "dotnet_sync"
+path = "dotnet_sync.rs"
+
+[[test]]
+name = "ruby_sync"
+path = "ruby_sync.rs"
+
+[[test]]
+name = "swift_sync"
+path = "swift_sync.rs"
+
+[[test]]
+name = "elixir_sync"
+path = "elixir_sync.rs"
+
+
 

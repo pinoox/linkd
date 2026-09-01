@@ -433,6 +433,18 @@ fn render_links_list(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
                 linkd_core::Ecosystem::Dart => {
                     Span::styled("[dart/flutter]", Style::default().fg(Color::LightCyan))
                 }
+                linkd_core::Ecosystem::Dotnet => {
+                    Span::styled("[dotnet]", Style::default().fg(Color::Magenta))
+                }
+                linkd_core::Ecosystem::Ruby => {
+                    Span::styled("[ruby]", Style::default().fg(Color::Red))
+                }
+                linkd_core::Ecosystem::Swift => {
+                    Span::styled("[swift]", Style::default().fg(Color::LightYellow))
+                }
+                linkd_core::Ecosystem::Elixir => {
+                    Span::styled("[elixir]", Style::default().fg(Color::LightMagenta))
+                }
                 linkd_core::Ecosystem::Custom => {
                     Span::styled("[custom]", Style::default().fg(Color::Blue))
                 }

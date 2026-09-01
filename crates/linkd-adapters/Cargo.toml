@@ -10,6 +10,10 @@ linkd-adapters-composer = { workspace = true }
 linkd-adapters-go = { workspace = true }
 linkd-adapters-jvm = { workspace = true }
 linkd-adapters-dart = { workspace = true }
+linkd-adapters-dotnet = { workspace = true }
+linkd-adapters-ruby = { workspace = true }
+linkd-adapters-swift = { workspace = true }
+linkd-adapters-elixir = { workspace = true }
 linkd-adapters-npm = { workspace = true }
 linkd-adapters-python = { workspace = true }
 linkd-core = { workspace = true }

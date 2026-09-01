@@ -215,6 +215,10 @@
         <ul class="sidebar-list">
           <li><a href="#eco-javascript" class="sidebar-link">🟢 JavaScript / TypeScript</a></li>
           <li><a href="#eco-dart" class="sidebar-link">💙 Flutter & Dart</a></li>
+          <li><a href="#eco-dotnet" class="sidebar-link">🔷 .NET (C# / F# / NuGet)</a></li>
+          <li><a href="#eco-ruby" class="sidebar-link">💎 Ruby (Bundler / Gems)</a></li>
+          <li><a href="#eco-swift" class="sidebar-link">🐦 Swift (SwiftPM)</a></li>
+          <li><a href="#eco-elixir" class="sidebar-link">💧 Elixir (Mix / Phoenix)</a></li>
           <li><a href="#eco-php" class="sidebar-link">🐘 PHP (Composer)</a></li>
           <li><a href="#eco-python" class="sidebar-link">🐍 Python (uv / pip / poetry)</a></li>
           <li><a href="#eco-go" class="sidebar-link">🐹 Go (Go Modules & Vendor)</a></li>
@@ -414,6 +418,50 @@
       <ul>
         <li><strong>Automatic Filters:</strong> <code>.dart_tool</code>, <code>.pub-cache</code>, <code>build/</code>, <code>android/</code>, <code>ios/</code>, <code>.git</code></li>
         <li><strong>Watched Markers:</strong> <code>pubspec.lock</code>, <code>.dart_tool/package_config.json</code>, <code>.packages</code></li>
+      </ul>
+
+      <h2 id="eco-dotnet">🔷 .NET (C# / F# / NuGet)</h2>
+      <p>Parses <code>*.csproj</code> and <code>Directory.Build.props</code> for <code>&lt;PackageId&gt;</code> and syncs compiled libraries into <code>consumer/packages/&lt;package_id&gt;</code> without requiring temporary <code>&lt;ProjectReference&gt;</code> edits.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./src/Acme.Logging ./src/Acme.ApiServer</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>obj/</code>, <code>.vs/</code>, <code>TestResults/</code>, <code>.git</code></li>
+        <li><strong>Watched Markers:</strong> <code>obj/project.assets.json</code>, <code>packages.lock.json</code></li>
+      </ul>
+
+      <h2 id="eco-ruby">💎 Ruby (Gems & Bundler)</h2>
+      <p>Parses <code>*.gemspec</code> definitions and syncs gem files into <code>consumer/vendor/bundle/gems/&lt;gem_name&gt;</code>, making local gem development painless in Rails applications.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./gems/acme_auth ./apps/rails_app</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>.bundle/</code>, <code>vendor/</code>, <code>tmp/</code>, <code>.git</code></li>
+        <li><strong>Watched Markers:</strong> <code>Gemfile.lock</code></li>
+      </ul>
+
+      <h2 id="eco-swift">🐦 Swift (Swift Package Manager)</h2>
+      <p>Detects <code>Package.swift</code> manifests and syncs into consumer SPM checkouts at <code>consumer/.build/checkouts/&lt;package_name&gt;</code> for both command-line builds and Xcode.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./packages/SwiftUiKit ./apps/SwiftApp</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>.build/</code>, <code>.swiftpm/</code>, <code>DerivedData/</code>, <code>.git</code></li>
+        <li><strong>Watched Markers:</strong> <code>Package.resolved</code></li>
+      </ul>
+
+      <h2 id="eco-elixir">💧 Elixir (Mix & Phoenix)</h2>
+      <p>Parses <code>app: :name</code> from <code>mix.exs</code> and syncs directly into <code>consumer/deps/&lt;app_name&gt;</code> for Phoenix and OTP projects without modifying <code>mix.exs</code>.</p>
+      <div class="code-wrapper">
+        <div class="code-header"><span>Example</span></div>
+        <pre><code><span class="t-cmd">linkd link ./plugins/elixir_auth ./apps/phoenix_web</span></code></pre>
+      </div>
+      <ul>
+        <li><strong>Automatic Filters:</strong> <code>_build/</code>, <code>deps/</code>, <code>.elixir_ls/</code>, <code>.git</code></li>
+        <li><strong>Watched Markers:</strong> <code>mix.lock</code></li>
       </ul>
 
       <h2 id="eco-php">🐘 PHP (Composer)</h2>

@@ -16,6 +16,10 @@ pub enum Ecosystem {
     Cargo,
     Jvm,
     Dart,
+    Dotnet,
+    Ruby,
+    Swift,
+    Elixir,
     Custom,
 }
 

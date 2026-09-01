@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use linkd_core::{Ecosystem, LinkEntry, LinkMode, LinkdResult, ResolvedSyncTarget};
 
 use crate::{
-    CargoAdapter, ComposerAdapter, CustomAdapter, DartAdapter, EcosystemAdapter, GoAdapter,
-    JvmAdapter, NpmAdapter, PythonAdapter,
+    CargoAdapter, ComposerAdapter, CustomAdapter, DartAdapter, DotnetAdapter, EcosystemAdapter,
+    ElixirAdapter, GoAdapter, JvmAdapter, NpmAdapter, PythonAdapter, RubyAdapter, SwiftAdapter,
 };
 
 pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
@@ -16,6 +16,10 @@ pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
         Ecosystem::Cargo => Box::new(CargoAdapter),
         Ecosystem::Jvm => Box::new(JvmAdapter),
         Ecosystem::Dart => Box::new(DartAdapter),
+        Ecosystem::Dotnet => Box::new(DotnetAdapter),
+        Ecosystem::Ruby => Box::new(RubyAdapter),
+        Ecosystem::Swift => Box::new(SwiftAdapter),
+        Ecosystem::Elixir => Box::new(ElixirAdapter),
         Ecosystem::Custom => Box::new(CustomAdapter),
     }
 }
@@ -23,6 +27,18 @@ pub fn adapter_for(ecosystem: Ecosystem) -> Box<dyn EcosystemAdapter> {
 pub fn detect_ecosystem(source: &Path, consumer: &Path) -> Ecosystem {
     if source.join("pubspec.yaml").is_file() {
         return Ecosystem::Dart;
+    }
+    if source.join("mix.exs").is_file() {
+        return Ecosystem::Elixir;
+    }
+    if source.join("Package.swift").is_file() {
+        return Ecosystem::Swift;
+    }
+    if linkd_adapters_dotnet::detect_dotnet(source, consumer) {
+        return Ecosystem::Dotnet;
+    }
+    if linkd_adapters_ruby::detect_ruby(source, consumer) {
+        return Ecosystem::Ruby;
     }
     if source.join("pyproject.toml").is_file()
         || source.join("setup.py").is_file()
@@ -51,6 +67,12 @@ pub fn detect_ecosystem(source: &Path, consumer: &Path) -> Ecosystem {
 
     if consumer.join("pubspec.yaml").is_file() || consumer.join(".dart_tool").exists() {
         return Ecosystem::Dart;
+    }
+    if consumer.join("mix.exs").is_file() || consumer.join("mix.lock").is_file() {
+        return Ecosystem::Elixir;
+    }
+    if consumer.join("Package.swift").is_file() || consumer.join("Package.resolved").is_file() {
+        return Ecosystem::Swift;
     }
     if consumer.join(".venv").exists()
         || consumer.join("venv").exists()
@@ -117,6 +139,10 @@ pub fn resolve_link(
         Ecosystem::Cargo => Some("cargo".into()),
         Ecosystem::Jvm => Some("maven/gradle".into()),
         Ecosystem::Dart => Some("flutter/dart".into()),
+        Ecosystem::Dotnet => Some("dotnet/nuget".into()),
+        Ecosystem::Ruby => Some("ruby/bundler".into()),
+        Ecosystem::Swift => Some("swift/spm".into()),
+        Ecosystem::Elixir => Some("elixir/mix".into()),
         Ecosystem::Custom => None,
     };
 
@@ -196,6 +222,26 @@ pub fn build_allowlist_for_link(
         Ecosystem::Dart => linkd_sync::WriteAllowlist::from_consumer_subdirs(
             &link.consumer_root,
             &[".dart_tool", "packages"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Dotnet => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["packages", "obj", "bin"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Ruby => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["vendor", ".bundle"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Swift => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &[".build"],
+            resolved.forbidden_roots.clone(),
+        ),
+        Ecosystem::Elixir => linkd_sync::WriteAllowlist::from_consumer_subdirs(
+            &link.consumer_root,
+            &["deps", "_build"],
             resolved.forbidden_roots.clone(),
         ),
         Ecosystem::Custom => {
