@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### ✨ Added
+- **Hierarchical tree view in `linkd list`**: Packages are now grouped with consumers shown as nested branches (`├──`, `└──`) instead of a flat repeating list.
+- **Hierarchical tree view in `linkd monitor`**: The TUI dashboard now renders links as a collapsible tree grouped by package.
+  - New keyboard shortcut `g` cycles between group modes: **By Package** → **By Consumer** → **Flat**.
+  - `Space` / `Enter` on a package header collapses/expands its consumer list.
+  - Selecting a package header shows an aggregate inspector (total files, consumer count, bulk re-sync).
+- **Full walkdir in npm fallback**: The `list_pack_files_fallback` now recursively walks the entire source tree (excluding `node_modules`, `.git`, `target`) instead of only listing hardcoded top-level files.
+
+---
+
 ## [0.1.2] - 2026-09-01
 
 ### 🚀 Public Release (v0.1.2)

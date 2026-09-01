@@ -217,8 +217,8 @@
           <li><a href="#eco-dart" class="sidebar-link">💙 Flutter & Dart</a></li>
           <li><a href="#eco-dotnet" class="sidebar-link">🔷 .NET (C# / F# / NuGet)</a></li>
           <li><a href="#eco-ruby" class="sidebar-link">💎 Ruby (Bundler / Gems)</a></li>
-          <li><a href="#eco-swift" class="sidebar-link">🐦 Swift (SwiftPM)</a></li>
-          <li><a href="#eco-elixir" class="sidebar-link">💧 Elixir (Mix / Phoenix)</a></li>
+          <li><a href="#eco-swift" class="sidebar-link">🐦 Swift (SPM)</a></li>
+          <li><a href="#eco-elixir" class="sidebar-link">💧 Elixir (Mix)</a></li>
           <li><a href="#eco-php" class="sidebar-link">🐘 PHP (Composer)</a></li>
           <li><a href="#eco-python" class="sidebar-link">🐍 Python (uv / pip / poetry)</a></li>
           <li><a href="#eco-go" class="sidebar-link">🐹 Go (Go Modules & Vendor)</a></li>
@@ -530,14 +530,30 @@
 
       <h2 id="tui-monitor">🖥️ Live TUI Monitor Dashboard</h2>
       <p>Launch the dashboard with <code>linkd monitor</code> (or aliases <code>linkd top</code> / <code>linkd dashboard</code>):</p>
+      <p>The monitor displays links in a <strong>hierarchical tree view</strong>: each package appears as a header with all its consumer projects listed underneath as collapsible branches.</p>
+
       <div class="code-wrapper">
-        <div class="code-header"><span>Dashboard Hotkeys</span></div>
-        <pre><code><span class="t-cyan">r</span>       Force immediate reconcile/sync of selected link
-<span class="t-cyan">Space</span>   Toggle Pause / Resume sync on selected link
-<span class="t-cyan">u</span>       Unlink selected package
-<span class="t-cyan">c</span>       Clear active log view
-<span class="t-cyan">Tab</span>     Switch focus between Links list and Logs panel
-<span class="t-cyan">q</span> / <span class="t-cyan">Esc</span> Quit monitor dashboard (daemon continues in background)</code></pre>
+        <div class="code-header"><span>Example: Hierarchical Tree View</span></div>
+        <pre><code>  ▼ 📦 @acme/ui-kit  [npm]  (3 consumers)
+  │  Source: ~/projects/monorepo/packages/ui-kit
+  ├── 📂 apps/web-app     → node_modules/@acme/ui-kit  [✓ synced]
+  ├── 📂 apps/mobile-app  → node_modules/@acme/ui-kit  [✓ synced]
+  └── 📂 apps/admin       → node_modules/@acme/ui-kit  [⏸ paused]
+
+  ▼ 📦 my_flutter_widget  [dart/flutter]  (1 consumer)
+  └── 📂 apps/flutter_app → .dart_tool/packages/my_flutter_widget  [✓ synced]</code></pre>
+      </div>
+
+      <div class="code-wrapper" style="margin-top: 16px">
+        <div class="code-header"><span>Keyboard Controls</span></div>
+        <pre><code><span class="t-cyan">↑/↓  j/k</span>     Navigate between packages and consumers
+<span class="t-cyan">Space / Enter</span> Collapse/expand a package group · Pause/Resume a link
+<span class="t-cyan">g</span>            Cycle group mode: By Package → By Consumer → Flat list
+<span class="t-cyan">r</span>            Force re-sync of selected link (or all links in group)
+<span class="t-cyan">u</span>            Unlink selected package or consumer
+<span class="t-cyan">c</span>            Clear log view
+<span class="t-cyan">Tab</span>          Switch focus between tree and logs panel
+<span class="t-cyan">q / Esc</span>      Quit monitor (daemon keeps running in background)</code></pre>
       </div>
 
       <h2 id="tui-wizards">🧙 Interactive Setup Wizards: <code>linkd init</code> vs <code>linkd wizard</code></h2>

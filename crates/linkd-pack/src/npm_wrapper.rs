@@ -86,15 +86,32 @@ pub fn list_pack_files_fallback(source: &Path) -> LinkdResult<Vec<PathBuf>> {
         return Err(LinkdError::NpmPackFailed("missing package.json".into()));
     }
 
-    let mut files = vec![PathBuf::from("package.json")];
-    let index = source.join("index.js");
-    if index.exists() {
-        files.push(PathBuf::from("index.js"));
+    // Walk the entire source tree, excluding well-known noise dirs
+    let mut files = Vec::new();
+    for entry in walkdir::WalkDir::new(source)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        // Exclude well-known noise directories
+        let skip = path.components().any(|c| {
+            matches!(
+                c.as_os_str().to_string_lossy().as_ref(),
+                "node_modules" | ".git" | "target" | ".linkd-shadow"
+            )
+        });
+        if skip {
+            continue;
+        }
+        if let Ok(rel) = path.strip_prefix(source) {
+            files.push(rel.to_path_buf());
+        }
     }
-    let src_index = source.join("src").join("index.js");
-    if src_index.exists() {
-        files.push(PathBuf::from("src/index.js"));
-    }
+    files.sort();
     Ok(files)
 }
 
