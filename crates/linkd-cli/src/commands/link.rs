@@ -104,6 +104,8 @@ fn print_result_sync_message(
     );
     println!("  sync target: {}", linkd_core::display_path(sync_target));
     if let Some(pm) = detected_pm {
-        println!("  detected: {pm}");
+        if !pm.is_empty() && pm != "unknown" {
+            println!("  detected: {pm}");
+        }
     }
 }

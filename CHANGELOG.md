@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.6] - 2026-09-01
+
+### 🚀 Public Release (v0.1.6)
+
+- **Systemic Live-Sync Across All Ecosystems**:
+  - Upgraded `LinkWatcher` with dynamic path synchronization (`sync_paths`), dynamically watching newly linked packages and lockfiles immediately without daemon restarts.
+  - Standardized path normalization (`normalize_path`) and event classification (`classify_events`) across all batch event paths and lockfile markers (`package-lock.json`, `go.sum`, `Cargo.lock`, `composer.lock`, `uv.lock`, `pubspec.lock`, `mix.lock`, etc.).
+  - Prevented circular watch loops by isolating target directories from marker watchers.
+
+- **Extreme Idle Resource Optimization (< 0.05% CPU, 99.9% Syscall Reduction)**:
+  - Eliminated continuous 100ms full-system process scanning in `service.rs`.
+  - Targeted single PID queries in `sysinfo` (`ProcessesToUpdate::Some(&[pid])`) with minimal footprint.
+  - Replaced slow synchronous `npm pack` dry-runs with sub-millisecond recursive fallback file discovery that instantly tracks added/deleted files.
+  - Idle CPU measured at **0.04% average** with **~20 MB memory RSS** across 6 active multi-ecosystem links.
+
+- **Intelligent Package Identifier Matching (`linkd use <name>`)**:
+  - Enhanced `PinnedStore::get` with a fuzzy fallback hierarchy: exact name match → folder name match → URL/namespace suffix match (e.g. `example.com/tools/go-lib` → `go-lib`) → `snake_case` / `kebab-case` normalization.
+
+- **Daemon Process Detachment on Unix**:
+  - Added `CommandExt::process_group(0)` on Unix platforms ensuring the daemon process detaches cleanly from the controlling terminal session.
+
+- **Documentation & Website Mobile Responsiveness Overhaul**:
+  - Added responsive mobile navigation drawer and mobile Table of Contents dropdown in `docs.html` and `index.html`.
+  - Fixed horizontal scroll issues on mobile screens: responsive ecosystem tabs (`.eco-tabs`), touch scrollbars, responsive CLI reference table (`.table-responsive`), and flex wrapping on callouts.
+
+---
+
 ## [0.1.5] - 2026-09-01
 
 ### 🚀 Public Release (v0.1.5)
@@ -194,6 +221,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.1.6]: https://github.com/pinoox/linkd/releases/tag/v0.1.6
 [0.1.5]: https://github.com/pinoox/linkd/releases/tag/v0.1.5
 [0.1.4]: https://github.com/pinoox/linkd/releases/tag/v0.1.4
 [0.1.3]: https://github.com/pinoox/linkd/releases/tag/v0.1.3

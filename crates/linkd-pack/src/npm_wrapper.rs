@@ -5,11 +5,6 @@ use linkd_core::{LinkdError, LinkdResult};
 
 use crate::cache::PackCache;
 
-#[derive(Debug, Clone, serde::Deserialize)]
-struct NpmPackEntry {
-    path: String,
-}
-
 pub struct NpmPackList;
 
 impl NpmPackList {
@@ -22,7 +17,12 @@ impl NpmPackList {
             )));
         }
 
-        let output = Command::new("npm")
+        #[cfg(windows)]
+        let npm_bin = "npm.cmd";
+        #[cfg(not(windows))]
+        let npm_bin = "npm";
+
+        let output = Command::new(npm_bin)
             .arg("pack")
             .arg("--dry-run")
             .arg("--json")
@@ -41,28 +41,52 @@ impl NpmPackList {
 }
 
 fn parse_npm_pack_json(stdout: &str) -> LinkdResult<Vec<PathBuf>> {
-    // npm may emit one JSON object per line or a single array
     let trimmed = stdout.trim();
     if trimmed.is_empty() {
         return Ok(Vec::new());
     }
 
-    if trimmed.starts_with('[') {
-        let entries: Vec<NpmPackEntry> =
-            serde_json::from_str(trimmed).map_err(|e| LinkdError::NpmPackFailed(e.to_string()))?;
-        return Ok(entries.into_iter().map(|e| PathBuf::from(e.path)).collect());
+    if let Ok(value) = serde_json::from_str::<serde_json::Value>(trimmed) {
+        let mut paths = Vec::new();
+        extract_paths_from_value(&value, &mut paths);
+        if !paths.is_empty() {
+            paths.sort();
+            paths.dedup();
+            return Ok(paths);
+        }
     }
 
     let mut files = Vec::new();
     for line in trimmed.lines() {
-        if line.trim().is_empty() {
+        let l = line.trim();
+        if l.is_empty() {
             continue;
         }
-        let entry: NpmPackEntry =
-            serde_json::from_str(line).map_err(|e| LinkdError::NpmPackFailed(e.to_string()))?;
-        files.push(PathBuf::from(entry.path));
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(l) {
+            extract_paths_from_value(&value, &mut files);
+        }
     }
+    files.sort();
+    files.dedup();
     Ok(files)
+}
+
+fn extract_paths_from_value(val: &serde_json::Value, out: &mut Vec<PathBuf>) {
+    match val {
+        serde_json::Value::Array(arr) => {
+            for item in arr {
+                extract_paths_from_value(item, out);
+            }
+        }
+        serde_json::Value::Object(map) => {
+            if let Some(files) = map.get("files") {
+                extract_paths_from_value(files, out);
+            } else if let Some(path_val) = map.get("path").and_then(|p| p.as_str()) {
+                out.push(PathBuf::from(path_val));
+            }
+        }
+        _ => {}
+    }
 }
 
 pub fn list_pack_files(source: &Path) -> LinkdResult<Vec<PathBuf>> {
@@ -97,18 +121,16 @@ pub fn list_pack_files_fallback(source: &Path) -> LinkdResult<Vec<PathBuf>> {
         if !path.is_file() {
             continue;
         }
-        // Exclude well-known noise directories
-        let skip = path.components().any(|c| {
-            matches!(
-                c.as_os_str().to_string_lossy().as_ref(),
-                "node_modules" | ".git" | "target" | ".linkd-shadow"
-            )
-        });
-        if skip {
-            continue;
-        }
         if let Ok(rel) = path.strip_prefix(source) {
-            files.push(rel.to_path_buf());
+            let skip = rel.components().any(|c| {
+                matches!(
+                    c.as_os_str().to_string_lossy().as_ref(),
+                    "node_modules" | ".git" | "target" | ".linkd-shadow"
+                )
+            });
+            if !skip {
+                files.push(rel.to_path_buf());
+            }
         }
     }
     files.sort();
@@ -125,5 +147,30 @@ mod tests {
 {"path":"index.js"}"#;
         let files = parse_npm_pack_json(input).unwrap();
         assert_eq!(files.len(), 2);
+    }
+
+    #[test]
+    fn parse_json_npm_array_format() {
+        let input = r#"[
+  {
+    "id": "@test/npm-lib@1.0.0",
+    "name": "@test/npm-lib",
+    "version": "1.0.0",
+    "files": [
+      {
+        "path": "index.js",
+        "size": 51
+      },
+      {
+        "path": "package.json",
+        "size": 54
+      }
+    ]
+  }
+]"#;
+        let files = parse_npm_pack_json(input).unwrap();
+        assert_eq!(files.len(), 2);
+        assert!(files.contains(&PathBuf::from("index.js")));
+        assert!(files.contains(&PathBuf::from("package.json")));
     }
 }

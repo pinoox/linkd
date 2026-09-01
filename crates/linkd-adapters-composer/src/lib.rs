@@ -33,13 +33,17 @@ pub fn autoload_hint(source: &Path, consumer: &Path) -> Option<String> {
         .any(|entry| {
             let path = entry.path();
             if path.is_file() {
-                let not_excluded = !path.components().any(|c| {
-                    matches!(
-                        c.as_os_str().to_string_lossy().as_ref(),
-                        ".git" | "node_modules" | "vendor" | "target"
-                    )
-                });
-                not_excluded && path.extension().is_some_and(|ext| ext == "php")
+                if let Ok(rel) = path.strip_prefix(source) {
+                    let not_excluded = !rel.components().any(|c| {
+                        matches!(
+                            c.as_os_str().to_string_lossy().as_ref(),
+                            ".git" | "node_modules" | "vendor" | "target"
+                        )
+                    });
+                    not_excluded && path.extension().is_some_and(|ext| ext == "php")
+                } else {
+                    false
+                }
             } else {
                 false
             }

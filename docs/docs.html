@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>linkd Documentation — Complete Guide, Tutorials & CLI Reference (v0.1.5)</title>
-  <meta name="description" content="Comprehensive documentation and guide for linkd v0.1.5: Multi-ecosystem local-dev package reconciliation for JavaScript, Flutter/Dart, .NET, Ruby, Swift, Elixir, PHP, Python, Go, Rust, Java, and custom directories.">
+  <title>linkd Documentation — Complete Guide, Tutorials & CLI Reference (v0.1.6)</title>
+  <meta name="description" content="Comprehensive documentation and guide for linkd v0.1.6: Multi-ecosystem local-dev package reconciliation for JavaScript, Flutter/Dart, .NET, Ruby, Swift, Elixir, PHP, Python, Go, Rust, Java, and custom directories.">
   <meta name="theme-color" content="#0d1117">
   
   <link rel="stylesheet" href="style.css">
@@ -16,14 +16,15 @@
       display: grid;
       grid-template-columns: 280px minmax(0, 1fr);
       gap: 40px;
-      padding: 40px 0 80px;
+      padding: 30px 0 80px;
       max-width: 1320px;
       margin: 0 auto;
+      width: 100%;
     }
     .docs-sidebar {
       position: sticky;
-      top: 90px;
-      height: calc(100vh - 110px);
+      top: 84px;
+      height: calc(100vh - 100px);
       overflow-y: auto;
       padding-right: 16px;
       border-right: 1px solid var(--border-muted);
@@ -70,7 +71,7 @@
       line-height: 1.7;
     }
     .docs-content h1 {
-      font-size: 2.5rem;
+      font-size: clamp(2rem, 4vw, 2.5rem);
       font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 12px;
@@ -78,25 +79,27 @@
       border-bottom: 1px solid var(--border-muted);
     }
     .docs-content h2 {
-      font-size: 1.8rem;
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
       font-weight: 700;
-      margin: 48px 0 16px;
+      margin: 44px 0 16px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border-muted);
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .docs-content h3 {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      margin: 32px 0 12px;
+      margin: 28px 0 12px;
       color: var(--fg-default);
     }
     .docs-content p {
       color: var(--fg-default);
       margin-bottom: 18px;
       font-size: 1rem;
+      word-break: break-word;
     }
     .docs-content ul, .docs-content ol {
       margin-bottom: 20px;
@@ -135,6 +138,7 @@
       border: 1px solid var(--border-default);
       background-color: var(--bg-inset);
       overflow: hidden;
+      max-width: 100%;
     }
     .code-header {
       display: flex;
@@ -146,6 +150,8 @@
       font-family: var(--font-mono);
       font-size: 0.78rem;
       color: var(--fg-muted);
+      flex-wrap: wrap;
+      gap: 6px;
     }
     .code-wrapper pre {
       padding: 16px 20px;
@@ -153,13 +159,59 @@
       font-family: var(--font-mono);
       font-size: 0.88rem;
       line-height: 1.6;
+      -webkit-overflow-scrolling: touch;
     }
+
+    /* Sticky Mobile TOC Bar */
+    .mobile-toc-bar {
+      display: none;
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-default);
+      padding: 10px 16px;
+      margin: 0 -16px 24px;
+    }
+    .mobile-toc-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--bg-muted);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      color: var(--fg-default);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mobile-toc-dropdown {
+      display: none;
+      max-height: 380px;
+      overflow-y: auto;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      margin-top: 8px;
+      padding: 12px;
+      box-shadow: var(--shadow-card);
+    }
+    .mobile-toc-dropdown.open {
+      display: block;
+    }
+
     @media (max-width: 960px) {
       .docs-layout {
         grid-template-columns: 1fr;
+        padding-top: 16px;
       }
       .docs-sidebar {
         display: none;
+      }
+      .mobile-toc-bar {
+        display: block;
       }
     }
   </style>
@@ -171,20 +223,31 @@
     <div class="container nav">
       <a href="index.html" class="brand">
         <div class="brand-icon">⚡</div>
-        <span>linkd <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 4px">v0.1.5</span></span>
+        <span>linkd <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: normal; margin-left: 4px">v0.1.6</span></span>
       </a>
       <ul class="nav-links">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="#getting-started" class="nav-link" style="color: var(--accent-cyan)">Documentation</a></li>
+        <li><a href="docs.html" class="nav-link active" style="color: var(--accent-cyan)">Documentation</a></li>
         <li><a href="index.html#ecosystems" class="nav-link">Ecosystems</a></li>
         <li><a href="index.html#monitor" class="nav-link">TUI Monitor</a></li>
-        <li><a href="index.html#cli" class="nav-link">CLI Cheatsheet</a></li>
+        <li><a href="#cli-reference" class="nav-link">CLI Reference</a></li>
       </ul>
       <div class="nav-actions">
         <a href="https://github.com/pinoox/linkd" target="_blank" rel="noopener" class="btn btn-outline">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
           GitHub
         </a>
+        <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
       </div>
+    </div>
+    <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+      <a href="index.html" class="mobile-nav-link">Home</a>
+      <a href="docs.html" class="mobile-nav-link" style="color: var(--accent-cyan); font-weight: 700">📖 Documentation Hub</a>
+      <a href="index.html#ecosystems" class="mobile-nav-link">Ecosystems</a>
+      <a href="index.html#monitor" class="mobile-nav-link">TUI Monitor</a>
+      <a href="#cli-reference" class="mobile-nav-link">CLI Command Reference</a>
     </div>
   </header>
 
@@ -256,8 +319,42 @@
 
     <!-- Main Content Body -->
     <main class="docs-content">
+      <!-- Mobile Table of Contents Bar -->
+      <div class="mobile-toc-bar">
+        <button class="mobile-toc-toggle" id="mobile-toc-toggle">
+          <span>📖 Jump to Documentation Section...</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="mobile-toc-dropdown" id="mobile-toc-dropdown">
+          <div class="sidebar-title">Getting Started</div>
+          <a href="#overview" class="sidebar-link">Overview</a>
+          <a href="#installation" class="sidebar-link">Installation</a>
+          <a href="#quickstart" class="sidebar-link">Quickstart Tutorial</a>
+          <div class="sidebar-title" style="margin-top: 12px">Core Concepts</div>
+          <a href="#reconciler" class="sidebar-link">Reconciliation Loop</a>
+          <a href="#store-isolation" class="sidebar-link">pnpm Shadow Isolation</a>
+          <a href="#atomic-swaps" class="sidebar-link">Atomic Swaps & Markers</a>
+          <div class="sidebar-title" style="margin-top: 12px">11 Ecosystem Guides</div>
+          <a href="#eco-javascript" class="sidebar-link">🟢 JavaScript / TypeScript</a>
+          <a href="#eco-dart" class="sidebar-link">💙 Flutter & Dart</a>
+          <a href="#eco-dotnet" class="sidebar-link">🔷 .NET (C# / F#)</a>
+          <a href="#eco-ruby" class="sidebar-link">💎 Ruby (Gems)</a>
+          <a href="#eco-swift" class="sidebar-link">🐦 Swift (SPM)</a>
+          <a href="#eco-elixir" class="sidebar-link">💧 Elixir (Mix)</a>
+          <a href="#eco-php" class="sidebar-link">🐘 PHP (Composer)</a>
+          <a href="#eco-python" class="sidebar-link">🐍 Python (uv / pip)</a>
+          <a href="#eco-go" class="sidebar-link">🐹 Go (Modules)</a>
+          <a href="#eco-cargo" class="sidebar-link">🦀 Rust (Cargo)</a>
+          <a href="#eco-jvm" class="sidebar-link">☕ Java / Kotlin (JVM)</a>
+          <a href="#eco-custom" class="sidebar-link">📁 Custom Paths</a>
+          <div class="sidebar-title" style="margin-top: 12px">Reference</div>
+          <a href="#cli-reference" class="sidebar-link">CLI Command Reference</a>
+          <a href="#faq" class="sidebar-link">FAQ & Troubleshooting</a>
+        </div>
+      </div>
+
       <div class="hero-pill">
-        <span>⚡ linkd v0.1.5 Official Documentation</span>
+        <span>⚡ linkd v0.1.6 Official Documentation</span>
       </div>
 
       <h1 id="overview">Overview & Introduction</h1>
@@ -646,106 +743,113 @@ WantedBy=default.target</code></pre>
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
       <h2 id="cli-reference">📖 CLI Command Reference</h2>
-      <p>Search and explore all commands, options, and operational subcommands in linkd v0.1.2:</p>
+      <p>Search and explore all commands, options, and operational subcommands in linkd v0.1.6:</p>
 
       <input type="text" id="cli-filter" class="cli-search" placeholder="🔍 Filter CLI commands (e.g. link, monitor, stop, doctor)..." style="margin-bottom: 20px">
 
-      <table class="cli-table">
-        <thead>
-          <tr>
-            <th>Command</th>
-            <th>Flags & Arguments</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>linkd register</code></td>
-            <td><code>[path] [--name &lt;name&gt;] [--ecosystem &lt;type&gt;]</code> <em>(aliases: <code>pin</code>, <code>add</code>)</em></td>
-            <td>Register current package globally for reuse across multiple projects.</td>
-          </tr>
-          <tr>
-            <td><code>linkd use</code></td>
-            <td><code>&lt;package&gt; [consumer] [--target &lt;path&gt;]</code> <em>(aliases: <code>on</code>, <code>attach</code>)</em></td>
-            <td>Link a globally registered package into the current/specified project.</td>
-          </tr>
-          <tr>
-            <td><code>linkd packages</code></td>
-            <td><em>none</em> <em>(alias: <code>pinned</code>)</em></td>
-            <td>List all globally registered reusable packages.</td>
-          </tr>
-          <tr>
-            <td><code>linkd unregister</code></td>
-            <td><code>&lt;package&gt;</code> <em>(alias: <code>unpin</code>)</em></td>
-            <td>Remove package from global registry.</td>
-          </tr>
-          <tr>
-            <td><code>linkd link</code></td>
-            <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
-            <td>Directly register and sync local package into consumer.</td>
-          </tr>
-          <tr>
-            <td><code>linkd unlink</code></td>
-            <td><code>&lt;target|name|source&gt;</code></td>
-            <td>Remove an active link and clean marker files.</td>
-          </tr>
-          <tr>
-            <td><code>linkd list</code></td>
-            <td><em>none</em></td>
-            <td>Table of active links, status, and target paths.</td>
-          </tr>
-          <tr>
-            <td><code>linkd monitor</code></td>
-            <td><code>[--start]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
-            <td>Launch full-screen Ratatui TUI dashboard.</td>
-          </tr>
-          <tr>
-            <td><code>linkd init</code></td>
-            <td><em>none</em></td>
-            <td>Interactive guided setup wizard.</td>
-          </tr>
-          <tr>
-            <td><code>linkd start</code></td>
-            <td><em>none</em></td>
-            <td>Start daemon in background.</td>
-          </tr>
-          <tr>
-            <td><code>linkd stop</code></td>
-            <td><code>[--force]</code></td>
-            <td>Stop running background daemon.</td>
-          </tr>
-          <tr>
-            <td><code>linkd watch</code></td>
-            <td><em>none</em></td>
-            <td>Run foreground daemon with live logs.</td>
-          </tr>
-          <tr>
-            <td><code>linkd status</code></td>
-            <td><code>[--json]</code></td>
-            <td>Snapshot of daemon PID and active links.</td>
-          </tr>
-          <tr>
-            <td><code>linkd doctor</code></td>
-            <td><code>[--explain &lt;topic&gt;]</code></td>
-            <td>Diagnostics and environment checks.</td>
-          </tr>
-          <tr>
-            <td><code>linkd logs</code></td>
-            <td><code>[-f|--follow]</code></td>
-            <td>Tail background daemon logs.</td>
-          </tr>
-          <tr>
-            <td><code>linkd version</code></td>
-            <td><code>[-v, --json]</code></td>
-            <td>Print version, target OS, architecture, and supported ecosystems.</td>
-          </tr>
-          <tr>
-            <td><code>linkd completions</code></td>
-            <td><code>&lt;shell&gt;</code></td>
-            <td>Generate shell completions (bash, zsh, fish, pwsh).</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="cli-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Flags & Arguments</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>linkd register</code></td>
+              <td><code>[path] [--name &lt;name&gt;] [--ecosystem &lt;type&gt;]</code> <em>(aliases: <code>pin</code>, <code>add</code>)</em></td>
+              <td>Register current package globally for reuse across multiple projects.</td>
+            </tr>
+            <tr>
+              <td><code>linkd use</code></td>
+              <td><code>&lt;package&gt; [consumer] [--target &lt;path&gt;]</code> <em>(aliases: <code>on</code>, <code>attach</code>)</em></td>
+              <td>Link a globally registered package into the current/specified project.</td>
+            </tr>
+            <tr>
+              <td><code>linkd packages</code></td>
+              <td><em>none</em> <em>(alias: <code>pinned</code>)</em></td>
+              <td>List all globally registered reusable packages.</td>
+            </tr>
+            <tr>
+              <td><code>linkd unregister</code></td>
+              <td><code>&lt;package&gt;</code> <em>(alias: <code>unpin</code>)</em></td>
+              <td>Remove package from global registry.</td>
+            </tr>
+            <tr>
+              <td><code>linkd link</code></td>
+              <td><code>&lt;source&gt; [consumer] [--target &lt;path&gt;] [--ecosystem &lt;type&gt;] [--copy|--hardlink|--link] [--no-daemon]</code></td>
+              <td>Directly register and sync local package into consumer.</td>
+            </tr>
+            <tr>
+              <td><code>linkd unlink</code></td>
+              <td><code>&lt;target|name|source&gt;</code></td>
+              <td>Remove an active link and clean marker files.</td>
+            </tr>
+            <tr>
+              <td><code>linkd list</code></td>
+              <td><code>[--json] [--details]</code> <em>(aliases: <code>ls</code>, <code>status</code>)</em></td>
+              <td>List all active links with sync status and health indicators.</td>
+            </tr>
+            <tr>
+              <td><code>linkd pause</code></td>
+              <td><code>&lt;target|name|all&gt;</code></td>
+              <td>Temporarily pause reconciliation for target link(s).</td>
+            </tr>
+            <tr>
+              <td><code>linkd resume</code></td>
+              <td><code>&lt;target|name|all&gt;</code></td>
+              <td>Resume active reconciliation and run immediate sync.</td>
+            </tr>
+            <tr>
+              <td><code>linkd sync</code></td>
+              <td><code>[target|name|all] [--force]</code> <em>(alias: <code>reconcile</code>)</em></td>
+              <td>Manually trigger an immediate reconciliation run.</td>
+            </tr>
+            <tr>
+              <td><code>linkd monitor</code></td>
+              <td><code>[--interval &lt;ms&gt;]</code> <em>(aliases: <code>top</code>, <code>dashboard</code>)</em></td>
+              <td>Launch interactive full-screen TUI terminal monitor.</td>
+            </tr>
+            <tr>
+              <td><code>linkd init</code></td>
+              <td><em>none</em> <em>(alias: <code>wizard</code>)</em></td>
+              <td>Interactive setup wizard for guided linking.</td>
+            </tr>
+            <tr>
+              <td><code>linkd start</code></td>
+              <td><code>[--port &lt;p&gt;] [--foreground]</code></td>
+              <td>Start the background daemon process.</td>
+            </tr>
+            <tr>
+              <td><code>linkd stop</code></td>
+              <td><code>[--force]</code></td>
+              <td>Stop running linkd daemon.</td>
+            </tr>
+            <tr>
+              <td><code>linkd doctor</code></td>
+              <td><code>[--explain &lt;topic&gt;]</code></td>
+              <td>Run environment & permission diagnostic checks.</td>
+            </tr>
+            <tr>
+              <td><code>linkd logs</code></td>
+              <td><code>[-f|--follow]</code></td>
+              <td>Tail background daemon logs.</td>
+            </tr>
+            <tr>
+              <td><code>linkd version</code></td>
+              <td><code>[-v, --json]</code></td>
+              <td>Print version, target OS, architecture, and supported ecosystems.</td>
+            </tr>
+            <tr>
+              <td><code>linkd completions</code></td>
+              <td><code>&lt;shell&gt;</code></td>
+              <td>Generate shell completions (bash, zsh, fish, pwsh).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <hr class="section" style="padding: 20px 0; margin: 0"/>
 
@@ -762,7 +866,7 @@ WantedBy=default.target</code></pre>
 
       <div style="margin-top: 60px; padding: 24px; background-color: var(--bg-subtle); border-radius: var(--radius-lg); border: 1px solid var(--border-default); text-align: center">
         <h3 style="margin-top: 0">Ready to streamline your local development?</h3>
-        <p style="color: var(--fg-muted)">Install linkd v0.1.5 today and enjoy rock-solid local package synchronization.</p>
+        <p style="color: var(--fg-muted)">Install linkd v0.1.6 today and enjoy rock-solid local package synchronization.</p>
         <a href="index.html#install" class="btn btn-primary" style="margin-top: 8px">Get Started with linkd</a>
       </div>
     </main>
@@ -775,7 +879,7 @@ WantedBy=default.target</code></pre>
         <li><a href="index.html">Home</a></li>
         <li><a href="docs.html">Documentation</a></li>
         <li><a href="https://github.com/pinoox/linkd">GitHub</a></li>
-        <li><a href="https://github.com/pinoox/linkd/releases">Releases (v0.1.5)</a></li>
+        <li><a href="https://github.com/pinoox/linkd/releases">Releases (v0.1.6)</a></li>
         <li><a href="https://github.com/pinoox/linkd/blob/master/CHANGELOG.md">Changelog</a></li>
         <li><a href="https://github.com/pinoox/linkd/blob/master/LICENSE">MIT License</a></li>
       </ul>

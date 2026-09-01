@@ -84,11 +84,108 @@ impl PinnedStore {
 
     pub fn get(&self, name: &str) -> LinkdResult<Option<PinnedPackage>> {
         let file = self.load()?;
-        Ok(file.packages.get(name).cloned())
+
+        // 1. Exact match
+        if let Some(pkg) = file.packages.get(name) {
+            return Ok(Some(pkg.clone()));
+        }
+
+        let name_lower = name.to_lowercase();
+        let name_norm = name_lower.replace('_', "-");
+
+        // 2. Case-insensitive / normalized key match
+        for (k, pkg) in &file.packages {
+            let k_lower = k.to_lowercase();
+            if k_lower == name_lower || k_lower.replace('_', "-") == name_norm {
+                return Ok(Some(pkg.clone()));
+            }
+        }
+
+        // 3. Match against folder name (e.g. user typed folder "go-lib" or "php-lib")
+        for pkg in file.packages.values() {
+            if let Some(dir_name) = pkg
+                .path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_lowercase())
+            {
+                if dir_name == name_lower || dir_name.replace('_', "-") == name_norm {
+                    return Ok(Some(pkg.clone()));
+                }
+            }
+        }
+
+        // 4. Match against package suffix/tail (e.g. "example.com/go-lib" -> "go-lib", "vendor/php-lib" -> "php-lib", "com.example:jvm-lib" -> "jvm-lib")
+        for (k, pkg) in &file.packages {
+            let k_lower = k.to_lowercase();
+            let tail = k_lower
+                .split(['/', ':', '@'])
+                .next_back()
+                .unwrap_or(&k_lower);
+            if tail == name_lower || tail.replace('_', "-") == name_norm {
+                return Ok(Some(pkg.clone()));
+            }
+        }
+
+        Ok(None)
     }
 
     pub fn list(&self) -> LinkdResult<Vec<PinnedPackage>> {
         let file = self.load()?;
         Ok(file.packages.into_values().collect())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_pinned_store_smart_matching() {
+        let tmp = TempDir::new().unwrap();
+        let store = PinnedStore::new(tmp.path().join("packages.json"));
+
+        let go_path = tmp.path().join("go-lib");
+        std::fs::create_dir_all(&go_path).unwrap();
+        store
+            .pin(
+                "example.com/org/go-lib".into(),
+                go_path.clone(),
+                Ecosystem::Go,
+            )
+            .unwrap();
+
+        let dart_path = tmp.path().join("dart-pkg");
+        std::fs::create_dir_all(&dart_path).unwrap();
+        store
+            .pin("dart_pkg".into(), dart_path.clone(), Ecosystem::Dart)
+            .unwrap();
+
+        let php_path = tmp.path().join("php-lib");
+        std::fs::create_dir_all(&php_path).unwrap();
+        store
+            .pin(
+                "vendor/php-lib".into(),
+                php_path.clone(),
+                Ecosystem::Composer,
+            )
+            .unwrap();
+
+        // Exact match
+        assert!(store.get("example.com/org/go-lib").unwrap().is_some());
+
+        // Suffix match
+        assert_eq!(
+            store.get("go-lib").unwrap().unwrap().name,
+            "example.com/org/go-lib"
+        );
+        assert_eq!(
+            store.get("php-lib").unwrap().unwrap().name,
+            "vendor/php-lib"
+        );
+
+        // Snake_case vs kebab-case match
+        assert_eq!(store.get("dart-pkg").unwrap().unwrap().name, "dart_pkg");
+        assert_eq!(store.get("dart_pkg").unwrap().unwrap().name, "dart_pkg");
     }
 }

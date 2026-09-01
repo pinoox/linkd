@@ -4,7 +4,38 @@ document.addEventListener('DOMContentLoaded', () => {
   initEcosystemTabs();
   initTuiSimulator();
   initCliSearch();
+  initMobileNavigation();
 });
+
+// Mobile Nav Drawer & Mobile TOC Dropdown
+function initMobileNavigation() {
+  const menuBtn = document.getElementById('mobile-menu-toggle');
+  const navDrawer = document.getElementById('mobile-nav-drawer');
+  if (menuBtn && navDrawer) {
+    menuBtn.addEventListener('click', () => {
+      navDrawer.classList.toggle('open');
+    });
+    // Close on navigation link click
+    navDrawer.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navDrawer.classList.remove('open');
+      });
+    });
+  }
+
+  const tocBtn = document.getElementById('mobile-toc-toggle');
+  const tocDropdown = document.getElementById('mobile-toc-dropdown');
+  if (tocBtn && tocDropdown) {
+    tocBtn.addEventListener('click', () => {
+      tocDropdown.classList.toggle('open');
+    });
+    tocDropdown.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        tocDropdown.classList.remove('open');
+      });
+    });
+  }
+}
 
 // Install Command Tabs
 function initInstallTabs() {

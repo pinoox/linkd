@@ -103,6 +103,10 @@ path = "elixir_sync.rs"
 name = "incremental_sync"
 path = "incremental_sync.rs"
 
+[[test]]
+name = "live_idle_sync"
+path = "live_idle_sync.rs"
+
 
 
 

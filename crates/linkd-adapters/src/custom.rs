@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use linkd_core::{Ecosystem, IsolationMode, LinkdResult, ResolvedSyncTarget};
-use linkd_pack::{list_pack_files_cached, list_pack_files_fallback};
+use linkd_pack::list_pack_files_fallback;
 use walkdir::WalkDir;
 
 use crate::EcosystemAdapter;
@@ -65,12 +65,12 @@ pub fn list_files_walkdir(source: &Path) -> LinkdResult<Vec<PathBuf>> {
     {
         let path = entry.path();
         if path.is_file() {
-            if should_exclude(path) {
-                continue;
-            }
             let rel = path
                 .strip_prefix(source)
                 .map_err(|e| linkd_core::LinkdError::Other(e.to_string()))?;
+            if should_exclude(rel) {
+                continue;
+            }
             files.push(rel.to_path_buf());
         }
     }
@@ -78,8 +78,8 @@ pub fn list_files_walkdir(source: &Path) -> LinkdResult<Vec<PathBuf>> {
     Ok(files)
 }
 
-fn should_exclude(path: &Path) -> bool {
-    path.components().any(|c| {
+fn should_exclude(rel: &Path) -> bool {
+    rel.components().any(|c| {
         matches!(
             c.as_os_str().to_string_lossy().as_ref(),
             ".git" | "node_modules" | "vendor" | "target" | ".linkd-shadow"
@@ -116,10 +116,7 @@ impl EcosystemAdapter for NpmAdapter {
     }
 
     fn list_files(&self, source: &Path) -> LinkdResult<Vec<PathBuf>> {
-        match list_pack_files_cached(source) {
-            Ok(f) => Ok(f),
-            Err(_) => list_pack_files_fallback(source),
-        }
+        list_pack_files_fallback(source)
     }
 
     fn write_guard_roots(&self, _consumer: &Path) -> Vec<PathBuf> {

@@ -1,19 +1,28 @@
-use sysinfo::{Pid, ProcessRefreshKind, RefreshKind, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 use linkd_core::{DaemonPidFile, LinkdResult};
 
 pub fn is_linkd_process(pid: u32) -> bool {
-    let mut system = System::new_with_specifics(
-        RefreshKind::new().with_processes(ProcessRefreshKind::everything()),
+    let mut system = System::new();
+    let sys_pid = Pid::from_u32(pid);
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::Some(&[sys_pid]),
+        true,
+        ProcessRefreshKind::new()
+            .with_exe(UpdateKind::Always)
+            .with_cmd(UpdateKind::Always),
     );
-    system.refresh_all();
 
-    let Some(process) = system.process(Pid::from_u32(pid)) else {
+    let Some(process) = system.process(sys_pid) else {
         return false;
     };
 
     let name = process.name().to_string_lossy().to_lowercase();
-    name.contains("linkd")
+    let exe = process
+        .exe()
+        .map(|p| p.to_string_lossy().to_lowercase())
+        .unwrap_or_default();
+    name.contains("linkd") || exe.contains("linkd")
 }
 
 pub fn is_daemon_running() -> bool {

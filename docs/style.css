@@ -56,6 +56,13 @@ body {
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 24px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
 }
 
 a {
@@ -94,6 +101,7 @@ a:hover {
   font-size: 1.25rem;
   color: var(--fg-default);
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .brand-icon {
@@ -129,7 +137,42 @@ a:hover {
 .nav-actions {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--fg-default);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.mobile-nav-drawer {
+  display: none;
+  flex-direction: column;
+  background-color: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-default);
+  padding: 16px;
   gap: 12px;
+}
+
+.mobile-nav-drawer.open {
+  display: flex;
+}
+
+.mobile-nav-link {
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--fg-default);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-muted);
 }
 
 .btn {
@@ -174,7 +217,7 @@ a:hover {
 
 /* Hero Section */
 .hero {
-  padding: 80px 0 60px;
+  padding: 60px 0 40px;
   text-align: center;
   position: relative;
 }
@@ -191,12 +234,15 @@ a:hover {
   color: var(--accent-cyan);
   font-weight: 500;
   margin-bottom: 24px;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5vw, 4.2rem);
+  font-size: clamp(2.2rem, 5.5vw, 4.2rem);
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.03em;
   margin-bottom: 20px;
   background: linear-gradient(180deg, #ffffff 40%, #8b949e 100%);
@@ -205,7 +251,7 @@ a:hover {
 }
 
 .hero-subtitle {
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
   color: var(--fg-muted);
   max-width: 760px;
   margin: 0 auto 36px;
@@ -215,6 +261,7 @@ a:hover {
 /* Hero CTA & Quick Install Box */
 .install-box {
   max-width: 640px;
+  width: 100%;
   margin: 0 auto 48px;
   background-color: var(--bg-subtle);
   border: 1px solid var(--border-default);
@@ -225,9 +272,10 @@ a:hover {
 
 .install-tabs {
   display: flex;
+  flex-wrap: wrap;
   background-color: var(--bg-inset);
   border-bottom: 1px solid var(--border-muted);
-  padding: 4px 8px;
+  padding: 6px 8px;
   gap: 4px;
 }
 
@@ -244,6 +292,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .install-tab.active {
@@ -260,6 +309,7 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
+  gap: 12px;
   font-family: var(--font-mono);
   font-size: 0.92rem;
   background-color: var(--bg-subtle);
@@ -267,9 +317,11 @@ a:hover {
 
 .install-code {
   color: var(--accent-cyan);
-  white-space: nowrap;
-  overflow-x: auto;
+  word-break: break-all;
+  white-space: pre-wrap;
   text-align: left;
+  flex: 1;
+  min-width: 0;
 }
 
 .copy-btn {
@@ -286,7 +338,6 @@ a:hover {
   gap: 6px;
   transition: all 0.2s;
   flex-shrink: 0;
-  margin-left: 12px;
 }
 
 .copy-btn:hover {
@@ -300,9 +351,31 @@ a:hover {
   color: #fff;
 }
 
+@media (max-width: 600px) {
+  .install-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .install-tab {
+    justify-content: center;
+  }
+  .install-body {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .copy-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+}
+
 /* Terminal Preview Component */
 .terminal-window {
   max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   background-color: var(--bg-inset);
   border: 1px solid var(--border-default);
@@ -350,6 +423,7 @@ a:hover {
   color: var(--fg-default);
   min-height: 280px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .t-prompt { color: var(--accent-green); font-weight: bold; }
@@ -364,7 +438,7 @@ a:hover {
 
 /* Problem & Solution Comparison */
 .section {
-  padding: 80px 0;
+  padding: 70px 0;
   border-top: 1px solid var(--border-muted);
 }
 
@@ -378,7 +452,7 @@ a:hover {
 }
 
 .section-title {
-  font-size: 2.2rem;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
@@ -386,9 +460,9 @@ a:hover {
 
 .section-desc {
   color: var(--fg-muted);
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
   max-width: 680px;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 }
 
 .comparison-grid {
@@ -456,24 +530,41 @@ a:hover {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  padding: 4px 4px 12px 4px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-muted);
+}
+
+.eco-tabs::-webkit-scrollbar {
+  height: 5px;
+}
+
+.eco-tabs::-webkit-scrollbar-track {
+  background: var(--bg-subtle);
+  border-radius: 4px;
+}
+
+.eco-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
 }
 
 .eco-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 9px 16px;
   background-color: var(--bg-subtle);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   color: var(--fg-muted);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s;
 }
 
@@ -501,7 +592,7 @@ a:hover {
 }
 
 .eco-info h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -511,7 +602,7 @@ a:hover {
 .eco-info p {
   color: var(--fg-muted);
   margin-bottom: 24px;
-  font-size: 1rem;
+  font-size: 0.98rem;
   line-height: 1.6;
 }
 
@@ -538,12 +629,13 @@ a:hover {
   font-family: var(--font-mono);
   font-size: 0.86rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Features Grid */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
 }
 
@@ -605,6 +697,8 @@ a:hover {
   align-items: center;
   font-family: var(--font-mono);
   font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .tui-grid {
@@ -684,7 +778,8 @@ a:hover {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   color: var(--fg-subtle);
 }
 
@@ -693,7 +788,48 @@ a:hover {
   font-weight: bold;
 }
 
+/* Docs Callout Card (Featured Big Banner) */
+.docs-callout-card {
+  background: linear-gradient(135deg, rgba(47, 129, 247, 0.15), rgba(188, 140, 255, 0.1));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.docs-callout-text h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.docs-callout-text p {
+  color: var(--fg-muted);
+  margin: 0;
+  font-size: 1rem;
+}
+
+.docs-callout-btn {
+  padding: 12px 24px;
+  font-size: 0.98rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* CLI Table / Reference Explorer */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+}
+
 .cli-search {
   width: 100%;
   max-width: 400px;
@@ -718,9 +854,6 @@ a:hover {
   border-collapse: collapse;
   text-align: left;
   background-color: var(--bg-subtle);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
 }
 
 .cli-table th {
@@ -731,10 +864,11 @@ a:hover {
   font-weight: 700;
   text-transform: uppercase;
   color: var(--fg-muted);
+  white-space: nowrap;
 }
 
 .cli-table td {
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border-muted);
   font-size: 0.92rem;
 }
@@ -750,6 +884,7 @@ a:hover {
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
+  word-break: break-all;
 }
 
 /* Footer */
@@ -764,21 +899,58 @@ a:hover {
 .footer-links {
   display: flex;
   justify-content: center;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 16px 24px;
   margin-bottom: 20px;
   list-style: none;
 }
 
-/* Responsive */
+/* Responsive Breakpoints */
 @media (max-width: 860px) {
-  .comparison-grid, .eco-panel, .tui-grid {
+  .comparison-grid, .eco-panel {
     grid-template-columns: 1fr;
+    padding: 24px 18px;
+  }
+  .tui-grid {
+    grid-template-columns: 1fr;
+    height: auto;
   }
   .tui-left-col {
     border-right: none;
     border-bottom: 1px solid var(--border-muted);
   }
+  .tui-links-list {
+    max-height: 220px;
+  }
+  .tui-logs-col {
+    max-height: 220px;
+  }
   .nav-links {
     display: none;
+  }
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 50px 0;
+  }
+  .comp-card {
+    padding: 20px 16px;
+  }
+  .feature-card {
+    padding: 22px 18px;
+  }
+  .docs-callout-card {
+    padding: 24px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .docs-callout-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

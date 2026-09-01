@@ -81,7 +81,7 @@ impl DaemonService {
         let registry_for_watch = self.registry.load().unwrap_or_default();
         let watch_paths = watch_paths_for_links(&registry_for_watch.links);
 
-        let (_watcher, watch_rx) = LinkWatcher::new(watch_paths)
+        let (mut watcher, watch_rx) = LinkWatcher::new(watch_paths)
             .map_err(|e| linkd_core::LinkdError::Other(format!("watcher failed: {e}")))?;
 
         tokio::spawn(async move {
@@ -91,7 +91,8 @@ impl DaemonService {
         });
 
         let mut debounce = DebouncePool::new(300);
-        let mut interval = time::interval(Duration::from_millis(100));
+        let mut interval = time::interval(Duration::from_millis(500));
+        let mut sync_check_counter = 0u32;
 
         info!("linkd daemon running");
 
@@ -102,11 +103,9 @@ impl DaemonService {
                     break;
                 }
                 _ = interval.tick() => {
-                    if let Ok(reg) = registry_clone.load() {
-                        let hint = reg.links.iter().find_map(|l| pm_install_hint(&l.consumer_root));
-                        *pm_hint.lock().await = hint;
-                    }
+                    sync_check_counter += 1;
 
+                    // Drain events from watcher channel into debounce pool
                     while let Ok(event) = watch_rx.try_recv() {
                         let key: String = match event.kind {
                             WatchEventKind::MarkerChanged => "marker".into(),
@@ -157,9 +156,18 @@ impl DaemonService {
                     }
 
                     let ids = drain_reconcile_queue(&queue_clone, &registry_clone);
+                    let has_reconciled = !ids.is_empty();
                     for id in ids {
                         if let Err(e) = reconciler.reconcile_link(id) {
                             error!("reconcile error: {e}");
+                        }
+                    }
+
+                    // Dynamically synchronize watcher paths whenever links were reconciled or periodically
+                    if has_reconciled || sync_check_counter.is_multiple_of(4) {
+                        if let Ok(reg) = registry_clone.load() {
+                            let desired = watch_paths_for_links(&reg.links);
+                            watcher.sync_paths(&desired);
                         }
                     }
                 }
@@ -188,16 +196,24 @@ fn matching_link_ids_for_event(
 ) -> Vec<uuid::Uuid> {
     let mut matched_ids = Vec::new();
     for path in paths {
-        let clean_evt_path = linkd_core::clean_path(path);
+        let clean_evt_path = linkd_core::normalize_path(path);
         for link in links {
-            let clean_src = linkd_core::clean_path(&link.source_path);
+            if link.last_sync_status == linkd_core::LinkSyncStatus::Paused {
+                continue;
+            }
+            let clean_src = linkd_core::normalize_path(&link.source_path);
             let markers = completion_markers_for_link(link);
+            let clean_consumer = linkd_core::normalize_path(&link.consumer_root);
 
             let is_source_match = clean_evt_path.starts_with(&clean_src);
             let is_marker_match = markers.iter().any(|m| {
-                let clean_m = linkd_core::clean_path(m);
+                let clean_m = linkd_core::normalize_path(m);
                 clean_evt_path == clean_m || clean_evt_path.starts_with(&clean_m)
-            });
+            }) || clean_evt_path == clean_consumer
+                || clean_evt_path
+                    .parent()
+                    .map(|p| p == clean_consumer)
+                    .unwrap_or(false);
 
             if (is_source_match || is_marker_match) && !matched_ids.contains(&link.id) {
                 matched_ids.push(link.id);
@@ -210,7 +226,8 @@ fn matching_link_ids_for_event(
 fn watch_paths_for_links(links: &[linkd_core::LinkEntry]) -> Vec<std::path::PathBuf> {
     let mut paths = Vec::new();
     for link in links {
-        // Watch lockfiles / completion markers so we detect reinstalls.
+        // Watch consumer root and completion markers so we detect reinstalls & lockfile changes.
+        paths.push(link.consumer_root.clone());
         paths.extend(completion_markers_for_link(link));
         // Watch the source package so we sync on code changes.
         paths.push(link.source_path.clone());

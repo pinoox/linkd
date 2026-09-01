@@ -7,7 +7,6 @@ pub fn watch_marker_paths(links: &[linkd_core::LinkEntry]) -> Vec<PathBuf> {
     for link in links {
         paths.extend(completion_markers_for_link(link));
         paths.push(link.source_path.clone());
-        paths.push(link.sync_target.clone());
     }
     paths.sort();
     paths.dedup();

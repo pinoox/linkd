@@ -50,11 +50,15 @@ pub fn start_daemon() -> LinkdResult<()> {
 
     #[cfg(not(windows))]
     {
-        let child = Command::new(&exe)
-            .arg("--daemon-internal")
+        use std::os::unix::process::CommandExt;
+        let mut cmd = Command::new(&exe);
+        cmd.arg("--daemon-internal")
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
+            .process_group(0);
+
+        let child = cmd
             .spawn()
             .map_err(|e| linkd_core::LinkdError::Other(format!("failed to start daemon: {e}")))?;
 

@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::schema::{Registry, RegistryFile, REGISTRY_VERSION};
 
+#[derive(Clone, Debug)]
 pub struct RegistryStore {
     path: PathBuf,
 }
