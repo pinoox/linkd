@@ -2,7 +2,6 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-
 use filetime::{set_file_mtime, FileTime};
 use linkd_core::SyncStrategy;
 use sha2::{Digest, Sha256};
