@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.5] - 2026-09-01
+
+### 🚀 Public Release (v0.1.5)
+
+- **TUI Dashboard Navigation Polish (`linkd monitor` / `linkd top`)**:
+  - **Fixed Cursor Jumping**: Filtered `KeyEventKind::Press` events in crossterm to eliminate double-firing on Windows and rapid key repeats.
+  - **Smooth Viewport Auto-Scrolling**: Implemented dynamic tree and log viewport windowing (`tree_scroll_offset` & `log_scroll`) ensuring the selected row is always in view without jumping off-screen.
+  - **Navigation Hotkeys**: Added support for `Home`, `End`, `PageUp`, `PageDown` for rapid scrolling in large monorepos.
+  - **Modern UI Styling**: High-contrast selected row background (`Color::Rgb(22, 44, 75)`), rounded border boxes (`BorderType::Rounded`), distinct status badges (`[✓ IDLE]`, `[⚡ SYNC]`, `[✕ ERROR]`, `[⏸ PAUSED]`), and enhanced card layouts in the Inspector.
+
+---
+
 ## [0.1.4] - 2026-09-01
 
 ### 🚀 Public Release (v0.1.4)
@@ -182,6 +194,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.1.5]: https://github.com/pinoox/linkd/releases/tag/v0.1.5
 [0.1.4]: https://github.com/pinoox/linkd/releases/tag/v0.1.4
 [0.1.3]: https://github.com/pinoox/linkd/releases/tag/v0.1.3
 [0.1.2]: https://github.com/pinoox/linkd/releases/tag/v0.1.2

@@ -3,13 +3,13 @@ use std::io;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use crossterm::event::{self, Event, KeyCode, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use linkd_core::{display_path, Ecosystem, LinkEntry, LinkSyncStatus};
 use linkd_ipc::{DaemonEvent, IpcClient};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::widgets::{Block, BorderType, Borders, Paragraph};
 use ratatui::DefaultTerminal;
 use tokio::sync::mpsc;
 use uuid::Uuid;
@@ -74,11 +74,13 @@ pub struct MonitorState {
     pub pm_hint: Option<String>,
     pub links: Vec<LinkEntry>,
     pub selected_tree_row: usize,
+    pub tree_scroll_offset: usize,
     pub group_mode: GroupMode,
     pub collapsed_groups: HashSet<String>,
     pub logs: Vec<LogItem>,
     pub focus_logs: bool,
     pub log_scroll: usize,
+    pub auto_scroll_logs: bool,
     pub started_at: Instant,
     pub status_message: Option<(String, Instant)>,
 }
@@ -90,11 +92,13 @@ impl MonitorState {
             pm_hint: None,
             links: Vec::new(),
             selected_tree_row: 0,
+            tree_scroll_offset: 0,
             group_mode: GroupMode::ByPackage,
             collapsed_groups: HashSet::new(),
             logs: Vec::new(),
             focus_logs: false,
             log_scroll: 0,
+            auto_scroll_logs: true,
             started_at: Instant::now(),
             status_message: None,
         }
@@ -186,18 +190,6 @@ impl MonitorState {
         items.get(self.selected_tree_row)
     }
 
-    pub fn selected_link<'a>(&'a self, items: &[VisualTreeItem]) -> Option<&'a LinkEntry> {
-        match items.get(self.selected_tree_row)? {
-            VisualTreeItem::LinkItem { link_index, .. } => self.links.get(*link_index),
-            VisualTreeItem::PackageHeader { link_indices, .. } => {
-                link_indices.first().and_then(|&idx| self.links.get(idx))
-            }
-            VisualTreeItem::ConsumerHeader { link_indices, .. } => {
-                link_indices.first().and_then(|&idx| self.links.get(idx))
-            }
-        }
-    }
-
     pub fn add_log(
         &mut self,
         level: impl Into<String>,
@@ -214,6 +206,9 @@ impl MonitorState {
         if self.logs.len() > 1000 {
             self.logs.remove(0);
         }
+        if self.auto_scroll_logs {
+            self.log_scroll = self.logs.len();
+        }
     }
 
     pub fn set_status(&mut self, msg: impl Into<String>) {
@@ -226,6 +221,17 @@ impl MonitorState {
         let m = (s % 3600) / 60;
         let sec = s % 60;
         format!("{h:02}:{m:02}:{sec:02}")
+    }
+
+    pub fn ensure_tree_row_visible(&mut self, visible_height: usize) {
+        if visible_height == 0 {
+            return;
+        }
+        if self.selected_tree_row < self.tree_scroll_offset {
+            self.tree_scroll_offset = self.selected_tree_row;
+        } else if self.selected_tree_row >= self.tree_scroll_offset + visible_height {
+            self.tree_scroll_offset = self.selected_tree_row + 1 - visible_height;
+        }
     }
 }
 
@@ -240,6 +246,11 @@ pub async fn run_monitor_ui(daemon_pid: Option<u32>) -> io::Result<()> {
     let mut state = MonitorState::new(daemon_pid);
     state.add_log("INFO", None, "Attached to linkd background daemon");
 
+    // Fetch initial link list snapshot
+    if let Ok(links) = client.list_links().await {
+        state.links = links;
+    }
+
     let result = run_loop(&mut terminal, &mut state, &mut event_rx, &client).await;
     ratatui::restore();
     result
@@ -251,10 +262,10 @@ async fn run_loop(
     event_rx: &mut mpsc::Receiver<DaemonEvent>,
     client: &IpcClient,
 ) -> io::Result<()> {
-    let mut ticker = tokio::time::interval(Duration::from_millis(100));
+    let mut ticker = tokio::time::interval(Duration::from_millis(80));
 
     loop {
-        // Drain any incoming daemon events
+        // Drain any incoming daemon events non-blockingly
         while let Ok(event) = event_rx.try_recv() {
             handle_daemon_event(state, event);
         }
@@ -277,26 +288,42 @@ async fn run_loop(
 
         tokio::select! {
             _ = ticker.tick() => {}
-            _ = tokio::time::sleep(Duration::from_millis(50)) => {
-                if event::poll(Duration::from_millis(0))? {
-                    if let Event::Key(key) = event::read()? {
+            _ = tokio::time::sleep(Duration::from_millis(25)) => {
+                // Poll input with zero delay
+                while event::poll(Duration::from_millis(0))? {
+                    let ev = event::read()?;
+                    if let Event::Key(key) = ev {
+                        // CRITICAL FIX: Only react to KeyPress events!
+                        // On Windows crossterm emits KeyEventKind::Release and Repeat which causes cursor jumping!
+                        if key.kind != KeyEventKind::Press {
+                            continue;
+                        }
+
                         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
-                            break;
+                            return Ok(());
                         }
 
                         match key.code {
                             KeyCode::Char('q') | KeyCode::Esc => {
-                                break;
+                                return Ok(());
                             }
                             KeyCode::Tab => {
                                 state.focus_logs = !state.focus_logs;
+                                state.set_status(if state.focus_logs {
+                                    "Focus: Logs Panel (↑/↓ to scroll)"
+                                } else {
+                                    "Focus: Links Tree (↑/↓ to navigate)"
+                                });
                             }
                             KeyCode::Char('g') => {
                                 state.group_mode = state.group_mode.next();
-                                state.set_status(format!("Grouping: {}", state.group_mode.label()));
+                                state.selected_tree_row = 0;
+                                state.tree_scroll_offset = 0;
+                                state.set_status(format!("View Mode: {}", state.group_mode.label()));
                             }
                             KeyCode::Up | KeyCode::Char('k') => {
                                 if state.focus_logs {
+                                    state.auto_scroll_logs = false;
                                     state.log_scroll = state.log_scroll.saturating_sub(1);
                                 } else if state.selected_tree_row > 0 {
                                     state.selected_tree_row -= 1;
@@ -304,9 +331,44 @@ async fn run_loop(
                             }
                             KeyCode::Down | KeyCode::Char('j') => {
                                 if state.focus_logs {
-                                    state.log_scroll = (state.log_scroll + 1).min(state.logs.len().saturating_sub(1));
+                                    state.log_scroll = (state.log_scroll + 1).min(state.logs.len());
+                                    if state.log_scroll >= state.logs.len() {
+                                        state.auto_scroll_logs = true;
+                                    }
                                 } else if !tree_items.is_empty() && state.selected_tree_row + 1 < tree_items.len() {
                                     state.selected_tree_row += 1;
+                                }
+                            }
+                            KeyCode::Home => {
+                                if state.focus_logs {
+                                    state.auto_scroll_logs = false;
+                                    state.log_scroll = 0;
+                                } else {
+                                    state.selected_tree_row = 0;
+                                    state.tree_scroll_offset = 0;
+                                }
+                            }
+                            KeyCode::End => {
+                                if state.focus_logs {
+                                    state.auto_scroll_logs = true;
+                                    state.log_scroll = state.logs.len();
+                                } else if !tree_items.is_empty() {
+                                    state.selected_tree_row = tree_items.len() - 1;
+                                }
+                            }
+                            KeyCode::PageUp => {
+                                if state.focus_logs {
+                                    state.auto_scroll_logs = false;
+                                    state.log_scroll = state.log_scroll.saturating_sub(10);
+                                } else {
+                                    state.selected_tree_row = state.selected_tree_row.saturating_sub(10);
+                                }
+                            }
+                            KeyCode::PageDown => {
+                                if state.focus_logs {
+                                    state.log_scroll = (state.log_scroll + 10).min(state.logs.len());
+                                } else if !tree_items.is_empty() {
+                                    state.selected_tree_row = (state.selected_tree_row + 10).min(tree_items.len() - 1);
                                 }
                             }
                             KeyCode::Enter | KeyCode::Char(' ') => {
@@ -315,16 +377,20 @@ async fn run_loop(
                                         VisualTreeItem::PackageHeader { package_name, .. } => {
                                             if state.collapsed_groups.contains(package_name) {
                                                 state.collapsed_groups.remove(package_name);
+                                                state.set_status(format!("Expanded {package_name}"));
                                             } else {
                                                 state.collapsed_groups.insert(package_name.clone());
+                                                state.set_status(format!("Collapsed {package_name}"));
                                             }
                                         }
                                         VisualTreeItem::ConsumerHeader { consumer_path, .. } => {
                                             let key = consumer_path.display().to_string();
                                             if state.collapsed_groups.contains(&key) {
                                                 state.collapsed_groups.remove(&key);
+                                                state.set_status("Expanded consumer");
                                             } else {
                                                 state.collapsed_groups.insert(key);
+                                                state.set_status("Collapsed consumer");
                                             }
                                         }
                                         VisualTreeItem::LinkItem { link_index, .. } => {
@@ -347,8 +413,8 @@ async fn run_loop(
                                 if let Some(item) = tree_items.get(state.selected_tree_row) {
                                     match item {
                                         VisualTreeItem::PackageHeader { package_name, link_indices, .. } => {
-                                            state.add_log("CMD", None, format!("Reconciling all links for {package_name}"));
-                                            state.set_status(format!("Reconcile triggered for {package_name} ({link_indices_len} consumers)", link_indices_len = link_indices.len()));
+                                            state.add_log("CMD", None, format!("Reconciling {package_name}"));
+                                            state.set_status(format!("Reconcile triggered for {package_name}"));
                                             for &idx in link_indices {
                                                 if let Some(link) = state.links.get(idx) {
                                                     let id = link.id;
@@ -363,7 +429,7 @@ async fn run_loop(
                                         }
                                         VisualTreeItem::ConsumerHeader { consumer_path, link_indices, .. } => {
                                             let c_name = display_path(consumer_path);
-                                            state.add_log("CMD", None, format!("Reconciling all packages in {c_name}"));
+                                            state.add_log("CMD", None, format!("Reconciling {c_name}"));
                                             state.set_status(format!("Reconcile triggered for {c_name}"));
                                             for &idx in link_indices {
                                                 if let Some(link) = state.links.get(idx) {
@@ -379,9 +445,9 @@ async fn run_loop(
                                         }
                                         VisualTreeItem::LinkItem { link_index, .. } => {
                                             if let Some(link) = state.links.get(*link_index) {
-                                                let pkg = link.package_name.clone();
                                                 let id = link.id;
-                                                state.add_log("CMD", Some(format!("{:?}", link.ecosystem)), format!("Manual reconcile requested for {pkg}"));
+                                                let pkg = link.package_name.clone();
+                                                state.add_log("CMD", Some(format!("{:?}", link.ecosystem)), format!("Reconciling {pkg}"));
                                                 state.set_status(format!("Reconcile triggered for {pkg}"));
                                                 let client_clone = IpcClient::new().ok();
                                                 if let Some(c) = client_clone {
@@ -392,19 +458,6 @@ async fn run_loop(
                                             }
                                         }
                                     }
-                                }
-                            }
-                            KeyCode::Char('p') => {
-                                if let Some(link) = state.selected_link(&tree_items) {
-                                    let pkg = link.package_name.clone();
-                                    let client_clone = IpcClient::new().ok();
-                                    if let Some(c) = client_clone {
-                                        let pkg_c = pkg.clone();
-                                        tokio::spawn(async move {
-                                            let _ = c.toggle_pause_link(&pkg_c).await;
-                                        });
-                                    }
-                                    state.set_status(format!("Toggled pause for {pkg}"));
                                 }
                             }
                             KeyCode::Char('u') => {
@@ -446,6 +499,7 @@ async fn run_loop(
                             KeyCode::Char('c') => {
                                 state.logs.clear();
                                 state.log_scroll = 0;
+                                state.auto_scroll_logs = true;
                                 state.set_status("Logs cleared");
                             }
                             _ => {}
@@ -455,8 +509,6 @@ async fn run_loop(
             }
         }
     }
-
-    Ok(())
 }
 
 fn handle_daemon_event(state: &mut MonitorState, event: DaemonEvent) {
@@ -551,7 +603,7 @@ fn handle_daemon_event(state: &mut MonitorState, event: DaemonEvent) {
     }
 }
 
-fn render_ui(frame: &mut ratatui::Frame, state: &MonitorState, tree_items: &[VisualTreeItem]) {
+fn render_ui(frame: &mut ratatui::Frame, state: &mut MonitorState, tree_items: &[VisualTreeItem]) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -583,21 +635,29 @@ fn render_header(frame: &mut ratatui::Frame, area: Rect, state: &MonitorState) {
                 .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" │ "),
+        Span::styled("● ", Style::default().fg(Color::Green)),
         Span::styled(
             format!("Daemon: {pid_str}"),
-            Style::default().fg(Color::Green),
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" │ "),
+        Span::styled("⏱ ", Style::default().fg(Color::DarkGray)),
         Span::styled(
             format!("Uptime: {uptime}"),
             Style::default().fg(Color::White),
         ),
         Span::raw(" │ "),
+        Span::styled("🔗 ", Style::default().fg(Color::Yellow)),
         Span::styled(
             format!("Active Links: {total_links}"),
-            Style::default().fg(Color::Yellow),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" │ "),
+        Span::styled("👁 ", Style::default().fg(Color::Magenta)),
         Span::styled(
             format!("View: [{}]", state.group_mode.label()),
             Style::default()
@@ -609,7 +669,7 @@ fn render_header(frame: &mut ratatui::Frame, area: Rect, state: &MonitorState) {
     if let Some((msg, _)) = &state.status_message {
         header_spans.push(Span::raw(" │ "));
         header_spans.push(Span::styled(
-            msg,
+            format!("🔔 {msg}"),
             Style::default()
                 .fg(Color::LightCyan)
                 .add_modifier(Modifier::BOLD),
@@ -619,6 +679,7 @@ fn render_header(frame: &mut ratatui::Frame, area: Rect, state: &MonitorState) {
     let p = Paragraph::new(Line::from(header_spans)).block(
         Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
             .border_style(Style::default().fg(Color::Cyan)),
     );
 
@@ -628,22 +689,22 @@ fn render_header(frame: &mut ratatui::Frame, area: Rect, state: &MonitorState) {
 fn render_workspace(
     frame: &mut ratatui::Frame,
     area: Rect,
-    state: &MonitorState,
+    state: &mut MonitorState,
     tree_items: &[VisualTreeItem],
 ) {
     let columns = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Percentage(48), // Left panel: Nested tree + Details
-            Constraint::Percentage(52), // Right panel: Live Logs
+            Constraint::Percentage(50), // Left panel: Nested tree + Details
+            Constraint::Percentage(50), // Right panel: Live Logs
         ])
         .split(area);
 
     let left_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Percentage(55), // Hierarchical Links tree
-            Constraint::Percentage(45), // Details / Inspector
+            Constraint::Percentage(54), // Hierarchical Links tree
+            Constraint::Percentage(46), // Details / Inspector
         ])
         .split(columns[0]);
 
@@ -655,17 +716,27 @@ fn render_workspace(
 fn render_links_list(
     frame: &mut ratatui::Frame,
     area: Rect,
-    state: &MonitorState,
+    state: &mut MonitorState,
     tree_items: &[VisualTreeItem],
 ) {
-    let border_color = if !state.focus_logs {
+    let is_focused = !state.focus_logs;
+    let border_color = if is_focused {
         Color::Cyan
     } else {
         Color::DarkGray
     };
 
+    let visible_height = area.height.saturating_sub(2) as usize;
+    state.ensure_tree_row_visible(visible_height);
+
+    let scroll_info = if tree_items.len() > visible_height {
+        format!(" [{}/{}]", state.selected_tree_row + 1, tree_items.len())
+    } else {
+        String::new()
+    };
+
     let title = format!(
-        " Active Links ({}) [{}] [g: switch] ",
+        " 🌲 Active Links ({}) — {}{scroll_info} ",
         state.links.len(),
         state.group_mode.label()
     );
@@ -673,13 +744,28 @@ fn render_links_list(
 
     if state.links.is_empty() {
         lines.push(Line::from(Span::styled(
-            "  No active links. Run `linkd link` or `linkd use` to add.",
+            "  No active links registered. Run `linkd init` to link packages.",
             Style::default().fg(Color::DarkGray),
         )));
     } else {
-        for (i, item) in tree_items.iter().enumerate() {
+        let start_idx = state.tree_scroll_offset;
+
+        for (i, item) in tree_items
+            .iter()
+            .enumerate()
+            .skip(start_idx)
+            .take(visible_height)
+        {
             let is_selected = i == state.selected_tree_row;
-            let prefix = if is_selected { "> " } else { "  " };
+            let row_bg = if is_selected && is_focused {
+                Color::Rgb(22, 44, 75)
+            } else if is_selected {
+                Color::Rgb(30, 35, 45)
+            } else {
+                Color::Reset
+            };
+
+            let prefix = if is_selected { "▶ " } else { "  " };
             let prefix_color = if is_selected {
                 Color::Cyan
             } else {
@@ -705,21 +791,26 @@ fn render_links_list(
                     let header_style = if is_selected {
                         Style::default()
                             .fg(Color::White)
+                            .bg(row_bg)
                             .add_modifier(Modifier::BOLD)
                     } else {
                         Style::default()
                             .fg(Color::LightCyan)
+                            .bg(row_bg)
                             .add_modifier(Modifier::BOLD)
                     };
 
                     lines.push(Line::from(vec![
-                        Span::styled(prefix, Style::default().fg(prefix_color)),
-                        Span::styled(format!("{arrow} 📦 "), Style::default().fg(Color::Yellow)),
+                        Span::styled(prefix, Style::default().fg(prefix_color).bg(row_bg)),
+                        Span::styled(
+                            format!("{arrow} 📦 "),
+                            Style::default().fg(Color::Yellow).bg(row_bg),
+                        ),
                         Span::styled(package_name, header_style),
-                        Span::raw(" "),
+                        Span::styled(" ", Style::default().bg(row_bg)),
                         eco_badge,
-                        Span::raw(" "),
-                        Span::styled(count_str, Style::default().fg(Color::DarkGray)),
+                        Span::styled(" ", Style::default().bg(row_bg)),
+                        Span::styled(count_str, Style::default().fg(Color::DarkGray).bg(row_bg)),
                     ]));
                 }
                 VisualTreeItem::ConsumerHeader {
@@ -739,19 +830,24 @@ fn render_links_list(
                     let header_style = if is_selected {
                         Style::default()
                             .fg(Color::White)
+                            .bg(row_bg)
                             .add_modifier(Modifier::BOLD)
                     } else {
                         Style::default()
                             .fg(Color::LightMagenta)
+                            .bg(row_bg)
                             .add_modifier(Modifier::BOLD)
                     };
 
                     lines.push(Line::from(vec![
-                        Span::styled(prefix, Style::default().fg(prefix_color)),
-                        Span::styled(format!("{arrow} 📂 "), Style::default().fg(Color::Magenta)),
+                        Span::styled(prefix, Style::default().fg(prefix_color).bg(row_bg)),
+                        Span::styled(
+                            format!("{arrow} 📂 "),
+                            Style::default().fg(Color::Magenta).bg(row_bg),
+                        ),
                         Span::styled(c_name, header_style),
-                        Span::raw(" "),
-                        Span::styled(count_str, Style::default().fg(Color::DarkGray)),
+                        Span::styled(" ", Style::default().bg(row_bg)),
+                        Span::styled(count_str, Style::default().fg(Color::DarkGray).bg(row_bg)),
                     ]));
                 }
                 VisualTreeItem::LinkItem {
@@ -761,47 +857,54 @@ fn render_links_list(
                 } => {
                     if let Some(link) = state.links.get(*link_index) {
                         let branch = if *is_last { "└──" } else { "├──" };
-                        let status_badge = format_status_badge(link.last_sync_status);
+                        let status_badge = format_status_badge(link.last_sync_status, row_bg);
 
                         let name_style = if is_selected {
                             Style::default()
                                 .fg(Color::White)
+                                .bg(row_bg)
                                 .add_modifier(Modifier::BOLD)
                         } else {
-                            Style::default().fg(Color::Gray)
+                            Style::default().fg(Color::Gray).bg(row_bg)
                         };
 
                         let item_display = match state.group_mode {
                             GroupMode::ByPackage => {
                                 let c_name = display_path(&link.consumer_root);
                                 vec![
-                                    Span::styled(prefix, Style::default().fg(prefix_color)),
+                                    Span::styled(
+                                        prefix,
+                                        Style::default().fg(prefix_color).bg(row_bg),
+                                    ),
                                     Span::styled(
                                         format!("   {branch} 📂 "),
-                                        Style::default().fg(Color::Cyan),
+                                        Style::default().fg(Color::Cyan).bg(row_bg),
                                     ),
                                     Span::styled(c_name, name_style),
-                                    Span::raw(" "),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     status_badge,
-                                    Span::raw(" "),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     Span::styled(
                                         format!("({} files)", link.file_count),
-                                        Style::default().fg(Color::DarkGray),
+                                        Style::default().fg(Color::DarkGray).bg(row_bg),
                                     ),
                                 ]
                             }
                             GroupMode::ByConsumer => {
                                 let eco_badge = format_eco_badge(link.ecosystem);
                                 vec![
-                                    Span::styled(prefix, Style::default().fg(prefix_color)),
+                                    Span::styled(
+                                        prefix,
+                                        Style::default().fg(prefix_color).bg(row_bg),
+                                    ),
                                     Span::styled(
                                         format!("   {branch} 📦 "),
-                                        Style::default().fg(Color::Cyan),
+                                        Style::default().fg(Color::Cyan).bg(row_bg),
                                     ),
                                     Span::styled(&link.package_name, name_style),
-                                    Span::raw(" "),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     eco_badge,
-                                    Span::raw(" "),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     status_badge,
                                 ]
                             }
@@ -809,14 +912,26 @@ fn render_links_list(
                                 let eco_badge = format_eco_badge(link.ecosystem);
                                 let c_name = display_path(&link.consumer_root);
                                 vec![
-                                    Span::styled(prefix, Style::default().fg(prefix_color)),
-                                    Span::styled("📦 ", Style::default().fg(Color::Yellow)),
+                                    Span::styled(
+                                        prefix,
+                                        Style::default().fg(prefix_color).bg(row_bg),
+                                    ),
+                                    Span::styled(
+                                        "📦 ",
+                                        Style::default().fg(Color::Yellow).bg(row_bg),
+                                    ),
                                     Span::styled(&link.package_name, name_style),
-                                    Span::styled(" → ", Style::default().fg(Color::DarkGray)),
-                                    Span::styled(c_name, Style::default().fg(Color::DarkGray)),
-                                    Span::raw(" "),
+                                    Span::styled(
+                                        " → ",
+                                        Style::default().fg(Color::DarkGray).bg(row_bg),
+                                    ),
+                                    Span::styled(
+                                        c_name,
+                                        Style::default().fg(Color::DarkGray).bg(row_bg),
+                                    ),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     eco_badge,
-                                    Span::raw(" "),
+                                    Span::styled(" ", Style::default().bg(row_bg)),
                                     status_badge,
                                 ]
                             }
@@ -832,6 +947,7 @@ fn render_links_list(
     let p = Paragraph::new(lines).block(
         Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
             .title(title)
             .border_style(Style::default().fg(border_color)),
     );
@@ -856,21 +972,35 @@ fn format_eco_badge(ecosystem: Ecosystem) -> Span<'static> {
     }
 }
 
-fn format_status_badge(status: LinkSyncStatus) -> Span<'static> {
+fn format_status_badge(status: LinkSyncStatus, bg: Color) -> Span<'static> {
     match status {
-        LinkSyncStatus::Synced => Span::styled("[IDLE]", Style::default().fg(Color::Green)),
+        LinkSyncStatus::Synced => Span::styled(
+            "[✓ IDLE]",
+            Style::default()
+                .fg(Color::Green)
+                .bg(bg)
+                .add_modifier(Modifier::BOLD),
+        ),
         LinkSyncStatus::Syncing => Span::styled(
-            "[SYNC]",
+            "[⚡ SYNC]",
             Style::default()
                 .fg(Color::Yellow)
+                .bg(bg)
                 .add_modifier(Modifier::BOLD),
         ),
         LinkSyncStatus::Error => Span::styled(
-            "[ERR]",
-            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            "[✕ ERROR]",
+            Style::default()
+                .fg(Color::Red)
+                .bg(bg)
+                .add_modifier(Modifier::BOLD),
         ),
-        LinkSyncStatus::Pending => Span::styled("[PEND]", Style::default().fg(Color::Yellow)),
-        LinkSyncStatus::Paused => Span::styled("[PAUSED]", Style::default().fg(Color::DarkGray)),
+        LinkSyncStatus::Pending => {
+            Span::styled("[… PENDING]", Style::default().fg(Color::Yellow).bg(bg))
+        }
+        LinkSyncStatus::Paused => {
+            Span::styled("[⏸ PAUSED]", Style::default().fg(Color::DarkGray).bg(bg))
+        }
     }
 }
 
@@ -912,15 +1042,15 @@ fn render_link_inspector(
 
                 if let Some(link) = first_link {
                     lines.push(Line::from(vec![
-                        Span::styled("Source:           ", Style::default().fg(Color::Cyan)),
+                        Span::styled("   Source Path:   ", Style::default().fg(Color::Cyan)),
                         Span::raw(display_path(&link.source_path)),
                     ]));
                 }
 
                 lines.push(Line::from(vec![
-                    Span::styled("Active Consumers: ", Style::default().fg(Color::Cyan)),
+                    Span::styled("   Consumers:     ", Style::default().fg(Color::Cyan)),
                     Span::styled(
-                        format!("{count} projects linked"),
+                        format!("{count} linked project(s)"),
                         Style::default()
                             .fg(Color::Green)
                             .add_modifier(Modifier::BOLD),
@@ -932,14 +1062,14 @@ fn render_link_inspector(
                     if let Some(link) = state.links.get(idx) {
                         total_files += link.file_count;
                         let status_str = match link.last_sync_status {
-                            LinkSyncStatus::Synced => "Synced",
-                            LinkSyncStatus::Syncing => "Syncing...",
-                            LinkSyncStatus::Error => "Error",
-                            LinkSyncStatus::Pending => "Pending",
-                            LinkSyncStatus::Paused => "Paused",
+                            LinkSyncStatus::Synced => "✓ Synced",
+                            LinkSyncStatus::Syncing => "⚡ Syncing...",
+                            LinkSyncStatus::Error => "✕ Error",
+                            LinkSyncStatus::Pending => "… Pending",
+                            LinkSyncStatus::Paused => "⏸ Paused",
                         };
                         lines.push(Line::from(vec![
-                            Span::styled("  • ", Style::default().fg(Color::DarkGray)),
+                            Span::styled("     • ", Style::default().fg(Color::DarkGray)),
                             Span::styled(
                                 display_path(&link.consumer_root),
                                 Style::default().fg(Color::LightCyan),
@@ -953,17 +1083,32 @@ fn render_link_inspector(
                 }
 
                 lines.push(Line::from(vec![
-                    Span::styled("Total Synced:     ", Style::default().fg(Color::Cyan)),
-                    Span::raw(format!("{total_files} files across {count} consumers")),
+                    Span::styled("   Total Files:   ", Style::default().fg(Color::Cyan)),
+                    Span::raw(format!(
+                        "{total_files} files synchronized across {count} consumers"
+                    )),
                 ]));
 
                 lines.push(Line::from(vec![
-                    Span::styled("Actions:          ", Style::default().fg(Color::Cyan)),
-                    Span::styled("[r]", Style::default().fg(Color::Yellow)),
+                    Span::styled("   Quick Actions: ", Style::default().fg(Color::Yellow)),
+                    Span::styled(
+                        "[r]",
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ),
                     Span::raw(" Reconcile All  "),
-                    Span::styled("[Space]", Style::default().fg(Color::Green)),
-                    Span::raw(" Toggle Expand  "),
-                    Span::styled("[u]", Style::default().fg(Color::Red)),
+                    Span::styled(
+                        "[Space]",
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::raw(" Expand/Collapse  "),
+                    Span::styled(
+                        "[u]",
+                        Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                    ),
                     Span::raw(" Unlink All"),
                 ]));
             }
@@ -988,9 +1133,9 @@ fn render_link_inspector(
                     ),
                 ]));
                 lines.push(Line::from(vec![
-                    Span::styled("Linked Packages:  ", Style::default().fg(Color::Cyan)),
+                    Span::styled("   Packages:      ", Style::default().fg(Color::Cyan)),
                     Span::styled(
-                        format!("{count} packages"),
+                        format!("{count} linked package(s)"),
                         Style::default().fg(Color::Green),
                     ),
                 ]));
@@ -998,7 +1143,7 @@ fn render_link_inspector(
                 for &idx in link_indices {
                     if let Some(link) = state.links.get(idx) {
                         lines.push(Line::from(vec![
-                            Span::styled("  • ", Style::default().fg(Color::DarkGray)),
+                            Span::styled("     • ", Style::default().fg(Color::DarkGray)),
                             Span::styled(&link.package_name, Style::default().fg(Color::LightCyan)),
                             Span::raw(" "),
                             format_eco_badge(link.ecosystem),
@@ -1011,49 +1156,73 @@ fn render_link_inspector(
                 }
 
                 lines.push(Line::from(vec![
-                    Span::styled("Actions:          ", Style::default().fg(Color::Cyan)),
-                    Span::styled("[r]", Style::default().fg(Color::Yellow)),
+                    Span::styled("   Quick Actions: ", Style::default().fg(Color::Yellow)),
+                    Span::styled(
+                        "[r]",
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ),
                     Span::raw(" Reconcile All  "),
-                    Span::styled("[Space]", Style::default().fg(Color::Green)),
-                    Span::raw(" Toggle Expand"),
+                    Span::styled(
+                        "[Space]",
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::raw(" Expand/Collapse"),
                 ]));
             }
             VisualTreeItem::LinkItem { link_index, .. } => {
                 if let Some(link) = state.links.get(*link_index) {
                     lines.push(Line::from(vec![
                         Span::styled(
-                            "Package:  ",
+                            "📦 Package:       ",
                             Style::default()
                                 .fg(Color::Cyan)
                                 .add_modifier(Modifier::BOLD),
                         ),
-                        Span::raw(&link.package_name),
+                        Span::styled(
+                            &link.package_name,
+                            Style::default()
+                                .fg(Color::White)
+                                .add_modifier(Modifier::BOLD),
+                        ),
                         Span::raw(" "),
                         format_eco_badge(link.ecosystem),
                     ]));
                     lines.push(Line::from(vec![
-                        Span::styled("Source:   ", Style::default().fg(Color::Cyan)),
+                        Span::styled("   Source Path:   ", Style::default().fg(Color::Cyan)),
                         Span::raw(display_path(&link.source_path)),
                     ]));
                     lines.push(Line::from(vec![
-                        Span::styled("Consumer: ", Style::default().fg(Color::Cyan)),
+                        Span::styled("   Consumer Root: ", Style::default().fg(Color::Cyan)),
                         Span::raw(display_path(&link.consumer_root)),
                     ]));
                     lines.push(Line::from(vec![
-                        Span::styled("Target:   ", Style::default().fg(Color::Cyan)),
+                        Span::styled("   Sync Target:   ", Style::default().fg(Color::Cyan)),
                         Span::raw(display_path(&link.sync_target)),
                     ]));
                     lines.push(Line::from(vec![
-                        Span::styled("Strategy: ", Style::default().fg(Color::Cyan)),
-                        Span::raw(format!("{:?}", link.strategy)),
-                        Span::raw("  · Mode: "),
-                        Span::raw(format!("{:?}", link.link_mode)),
-                        Span::raw("  · Files: "),
-                        Span::raw(format!("{}", link.file_count)),
+                        Span::styled("   Strategy/Mode: ", Style::default().fg(Color::Cyan)),
+                        Span::styled(
+                            format!("{:?}", link.strategy),
+                            Style::default().fg(Color::Yellow),
+                        ),
+                        Span::raw(" │ Mode: "),
+                        Span::styled(
+                            format!("{:?}", link.link_mode),
+                            Style::default().fg(Color::White),
+                        ),
+                        Span::raw(" │ Files: "),
+                        Span::styled(
+                            format!("{}", link.file_count),
+                            Style::default().fg(Color::Green),
+                        ),
                     ]));
                     lines.push(Line::from(vec![
-                        Span::styled("Status:   ", Style::default().fg(Color::Cyan)),
-                        format_status_badge(link.last_sync_status),
+                        Span::styled("   Sync Status:   ", Style::default().fg(Color::Cyan)),
+                        format_status_badge(link.last_sync_status, Color::Reset),
                         Span::raw(" "),
                         Span::styled(
                             format!("{:?}", link.last_sync_status),
@@ -1062,8 +1231,8 @@ fn render_link_inspector(
                     ]));
                     if let Some(at) = link.last_sync_at {
                         lines.push(Line::from(vec![
-                            Span::styled("Last Sync:", Style::default().fg(Color::Cyan)),
-                            Span::raw(format!(" {}", at.format("%Y-%m-%d %H:%M:%S UTC"))),
+                            Span::styled("   Last Synced:   ", Style::default().fg(Color::Cyan)),
+                            Span::raw(format!("{}", at.format("%Y-%m-%d %H:%M:%S UTC"))),
                         ]));
                     }
                 }
@@ -1071,7 +1240,7 @@ fn render_link_inspector(
         }
     } else {
         lines.push(Line::from(Span::styled(
-            "Select a link or package group to inspect details",
+            "  Select a link or package group from the list above to inspect details.",
             Style::default().fg(Color::DarkGray),
         )));
     }
@@ -1079,7 +1248,8 @@ fn render_link_inspector(
     let p = Paragraph::new(lines).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(" Details & Health ")
+            .border_type(BorderType::Rounded)
+            .title(" 🔍 Link Details & Health ")
             .border_style(Style::default().fg(Color::DarkGray)),
     );
 
@@ -1093,31 +1263,32 @@ fn render_logs_panel(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
         Color::DarkGray
     };
 
-    let title = format!(" Live Sync & Engine Logs ({}) ", state.logs.len());
-    let mut lines = Vec::new();
-
     let visible_height = area.height.saturating_sub(2) as usize;
-    let start_idx = if state.logs.len() > visible_height {
-        if state.focus_logs {
-            state
-                .log_scroll
-                .min(state.logs.len().saturating_sub(visible_height))
-        } else {
-            state.logs.len() - visible_height
-        }
+    let total_logs = state.logs.len();
+
+    let scroll_pos = if state.auto_scroll_logs || state.log_scroll >= total_logs {
+        total_logs.saturating_sub(visible_height)
     } else {
-        0
+        state
+            .log_scroll
+            .min(total_logs.saturating_sub(visible_height))
     };
 
-    for item in state.logs.iter().skip(start_idx).take(visible_height) {
+    let title = format!(" 📜 Live Engine Logs ({total_logs}) ");
+    let mut lines = Vec::new();
+
+    for item in state.logs.iter().skip(scroll_pos).take(visible_height) {
         let level_style = match item.level.as_str() {
             "ERR" | "ERROR" => Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
             "DONE" => Style::default()
                 .fg(Color::Green)
                 .add_modifier(Modifier::BOLD),
-            "SYNC" => Style::default().fg(Color::Yellow),
+            "SYNC" => Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
             "HINT" => Style::default().fg(Color::Magenta),
             "CMD" => Style::default().fg(Color::Cyan),
+            "WATCH" => Style::default().fg(Color::Blue),
             _ => Style::default().fg(Color::DarkGray),
         };
 
@@ -1126,13 +1297,13 @@ fn render_logs_panel(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
                 format!("{} ", item.time),
                 Style::default().fg(Color::DarkGray),
             ),
-            Span::styled(format!("[{}]", item.level), level_style),
+            Span::styled(format!("[{:<5}]", item.level), level_style),
         ];
 
         if let Some(eco) = &item.ecosystem {
             spans.push(Span::styled(
                 format!(" [{eco}]"),
-                Style::default().fg(Color::Blue),
+                Style::default().fg(Color::LightMagenta),
             ));
         }
 
@@ -1150,6 +1321,7 @@ fn render_logs_panel(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
     let p = Paragraph::new(lines).block(
         Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
             .title(title)
             .border_style(Style::default().fg(border_color)),
     );
@@ -1159,20 +1331,53 @@ fn render_logs_panel(frame: &mut ratatui::Frame, area: Rect, state: &MonitorStat
 
 fn render_footer(frame: &mut ratatui::Frame, area: Rect, _state: &MonitorState) {
     let keybinds = vec![
-        Span::styled("[↑/↓/j/k]", Style::default().fg(Color::Cyan)),
+        Span::styled(
+            "[↑/↓/j/k]",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Nav  "),
-        Span::styled("[g]", Style::default().fg(Color::Magenta)),
+        Span::styled(
+            "[g]",
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Group View  "),
-        Span::styled("[Space/↵]", Style::default().fg(Color::Green)),
+        Span::styled(
+            "[Space/↵]",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Expand/Pause  "),
-        Span::styled("[r]", Style::default().fg(Color::Yellow)),
+        Span::styled(
+            "[r]",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Reconcile  "),
-        Span::styled("[u]", Style::default().fg(Color::Red)),
+        Span::styled(
+            "[u]",
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Unlink  "),
-        Span::styled("[c]", Style::default().fg(Color::Magenta)),
+        Span::styled(
+            "[c]",
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" Clear Logs  "),
-        Span::styled("[Tab]", Style::default().fg(Color::Cyan)),
-        Span::raw(" Focus  "),
+        Span::styled(
+            "[Tab]",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(" Switch Focus  "),
         Span::styled(
             "[q/Esc]",
             Style::default()
@@ -1185,6 +1390,7 @@ fn render_footer(frame: &mut ratatui::Frame, area: Rect, _state: &MonitorState) 
     let p = Paragraph::new(Line::from(keybinds)).block(
         Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
             .border_style(Style::default().fg(Color::DarkGray)),
     );
 
