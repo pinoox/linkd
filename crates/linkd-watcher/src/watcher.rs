@@ -104,6 +104,10 @@ impl LinkWatcher {
             .filter(|p| p.exists())
             .collect();
 
+        if self.watched_paths == desired_set {
+            return;
+        }
+
         let current = self.watched_paths.clone();
         for p in current {
             if !desired_set.contains(&p) {

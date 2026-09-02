@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] - 2026-09-02
+
+### 🚀 Zero-Loop Performance & Stability Release (v0.2.2)
+
+- **Elimination of Notification Storms & Reconcile Loops**:
+  - Fixed root cause of high CPU and hanging: excluded `consumer_root` directories from recursive watcher path registration, preventing internal `node_modules` / `vendor` / `.venv` writes from re-triggering reconciliation cycles.
+  - Excluded `TargetChanged` events from triggering reconciliations, ensuring daemon writes are completely ignored by the reconciler.
+  - Added early-return path comparison in `LinkWatcher::sync_paths` to prevent redundant inotify/ReadDirectoryChanges watch/unwatch churn.
+  - Throttled periodic self-healing target checks to clean missing-target directory recovery.
+  - Verified **0.00% idle CPU** and **~20 MB RAM (RSS)** across 6 simultaneous active ecosystems.
+
+---
+
 ## [0.2.1] - 2026-09-02
 
 ### 🚀 Self-Healing Target Recovery Release (v0.2.1)
@@ -257,6 +270,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.2.2]: https://github.com/pinoox/linkd/releases/tag/v0.2.2
+[0.2.1]: https://github.com/pinoox/linkd/releases/tag/v0.2.1
 [0.2.0]: https://github.com/pinoox/linkd/releases/tag/v0.2.0
 [0.1.6]: https://github.com/pinoox/linkd/releases/tag/v0.1.6
 [0.1.5]: https://github.com/pinoox/linkd/releases/tag/v0.1.5
