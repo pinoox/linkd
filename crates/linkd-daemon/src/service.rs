@@ -243,7 +243,10 @@ fn matching_link_ids_for_event(
                 && link.consumer_root.exists()
                 && link.source_path.exists()
                 && (!link.sync_target.exists()
-                    || !link.sync_target.join(linkd_core::LinkMarker::FILE_NAME).exists());
+                    || !link
+                        .sync_target
+                        .join(linkd_core::LinkMarker::FILE_NAME)
+                        .exists());
 
             if (is_source_match || is_marker_match || is_target_damage_match)
                 && !matched_ids.contains(&link.id)
