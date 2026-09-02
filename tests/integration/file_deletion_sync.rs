@@ -64,4 +64,3 @@ fn file_deletion_sync_removes_stale_target_files() {
     assert!(!target.join("features").exists());
     assert!(target.join("keep.txt").exists());
 }
-

@@ -116,7 +116,7 @@ impl SyncEngine {
                 .map(|e| e.path().to_path_buf())
                 .collect();
 
-            dirs.sort_by(|a, b| b.components().count().cmp(&a.components().count()));
+            dirs.sort_by_key(|a| std::cmp::Reverse(a.components().count()));
 
             for dir in dirs {
                 if let Ok(mut read) = fs::read_dir(&dir) {
