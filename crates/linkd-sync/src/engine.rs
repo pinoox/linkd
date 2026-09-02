@@ -105,6 +105,26 @@ impl SyncEngine {
                     }
                 }
             }
+
+            // Prune empty directories inside sync_target (deepest first)
+            let mut dirs: Vec<PathBuf> = WalkDir::new(sync_target)
+                .min_depth(1)
+                .follow_links(false)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|e| e.file_type().is_dir())
+                .map(|e| e.path().to_path_buf())
+                .collect();
+
+            dirs.sort_by(|a, b| b.components().count().cmp(&a.components().count()));
+
+            for dir in dirs {
+                if let Ok(mut read) = fs::read_dir(&dir) {
+                    if read.next().is_none() {
+                        let _ = fs::remove_dir(&dir);
+                    }
+                }
+            }
         }
 
         // 3. Write / update marker
@@ -230,5 +250,59 @@ mod tests {
         assert_eq!(out.files_skipped, 1);
         assert!(!target.join("b.js").exists());
         assert!(target.join("a.js").exists());
+    }
+
+    #[test]
+    fn incremental_sync_removes_empty_directories() {
+        let tmp = TempDir::new().unwrap();
+        let consumer = tmp.path().join("app");
+        let target = consumer.join("node_modules").join("pkg");
+
+        let allowlist = WriteAllowlist::from_consumer(&consumer, vec![]);
+        let engine = SyncEngine::new(allowlist);
+
+        let source = tmp.path().join("src");
+        let nested_dir = source.join("nested").join("subfolder");
+        fs::create_dir_all(&nested_dir).unwrap();
+        fs::write(source.join("root.js"), b"root").unwrap();
+        fs::write(nested_dir.join("sub.js"), b"sub").unwrap();
+
+        let files = vec![
+            PathBuf::from("root.js"),
+            PathBuf::from("nested/subfolder/sub.js"),
+        ];
+        engine
+            .sync(
+                Uuid::new_v4(),
+                &source,
+                &target,
+                &files,
+                SyncStrategy::Copy,
+                IsolationMode::ProjectLocal,
+            )
+            .unwrap();
+
+        assert!(target.join("nested/subfolder/sub.js").exists());
+        assert!(target.join("nested/subfolder").is_dir());
+
+        // Now remove nested/subfolder/sub.js from files list
+        let files_after = vec![PathBuf::from("root.js")];
+        let out = engine
+            .sync(
+                Uuid::new_v4(),
+                &source,
+                &target,
+                &files_after,
+                SyncStrategy::Copy,
+                IsolationMode::ProjectLocal,
+            )
+            .unwrap();
+
+        assert_eq!(out.files_deleted, 1);
+        assert!(!target.join("nested/subfolder/sub.js").exists());
+        assert!(!target.join("nested/subfolder").exists());
+        assert!(!target.join("nested").exists());
+        assert!(target.join("root.js").exists());
+        assert!(target.join(".linkd-marker.json").exists());
     }
 }

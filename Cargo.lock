@@ -743,7 +743,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-adapters-cargo",
  "linkd-adapters-composer",
@@ -767,7 +767,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-cargo"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "serde",
@@ -778,7 +778,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-composer"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "linkd-sync",
@@ -790,7 +790,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-dart"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "tempfile",
@@ -799,7 +799,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-dotnet"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "tempfile",
@@ -808,7 +808,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-elixir"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "tempfile",
@@ -817,7 +817,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-go"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "serde",
@@ -828,7 +828,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-jvm"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "directories",
  "linkd-core",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-npm"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "linkd-sync",
@@ -852,7 +852,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-python"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "serde",
@@ -863,7 +863,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-ruby"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "tempfile",
@@ -872,7 +872,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-adapters-swift"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "tempfile",
@@ -881,7 +881,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-cli"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -909,7 +909,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-core"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "directories",
@@ -923,7 +923,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-daemon"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "linkd-adapters",
@@ -940,7 +940,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-integration-tests"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "linkd-adapters",
@@ -958,7 +958,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-ipc"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "linkd-core",
@@ -972,7 +972,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-pack"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-core",
  "serde",
@@ -985,7 +985,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-registry"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "fd-lock",
@@ -999,7 +999,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-sync"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "filetime",
@@ -1014,7 +1014,7 @@ dependencies = [
 
 [[package]]
 name = "linkd-watcher"
-version = "0.1.6"
+version = "0.2.0"
 dependencies = [
  "linkd-adapters",
  "linkd-core",

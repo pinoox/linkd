@@ -45,4 +45,23 @@ fn file_deletion_sync_removes_stale_target_files() {
     assert!(target.join("keep.txt").exists());
     assert!(!target.join("remove.txt").exists());
     assert!(LinkMarker::read(&target).unwrap().is_some());
+
+    // Test recursive directory deletion
+    let nested_src = source.join("features").join("auth");
+    fs::create_dir_all(&nested_src).unwrap();
+    fs::write(nested_src.join("login.js"), b"export const login = true;").unwrap();
+
+    reconciler.reconcile_link(entry.id).unwrap();
+    assert!(target.join("features/auth/login.js").exists());
+    assert!(target.join("features/auth").is_dir());
+
+    // Delete entire features directory from source
+    fs::remove_dir_all(source.join("features")).unwrap();
+    reconciler.reconcile_link(entry.id).unwrap();
+
+    assert!(!target.join("features/auth/login.js").exists());
+    assert!(!target.join("features/auth").exists());
+    assert!(!target.join("features").exists());
+    assert!(target.join("keep.txt").exists());
 }
+

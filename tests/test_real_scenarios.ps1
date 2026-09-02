@@ -11,7 +11,14 @@ Write-Host "==========================================================" -Foregro
 
 # 1. Clean and prepare test sandbox
 if (Test-Path $TestRoot) {
-    Remove-Item -Recurse -Force $TestRoot
+    for ($attempt = 0; $attempt -lt 5; $attempt++) {
+        try {
+            Remove-Item -Recurse -Force $TestRoot -ErrorAction Stop
+            break
+        } catch {
+            Start-Sleep -Milliseconds 400
+        }
+    }
 }
 New-Item -ItemType Directory -Path $TestRoot -Force | Out-Null
 
@@ -37,37 +44,33 @@ Set-Content (Join-Path $npmApp "package.json") '{"name": "npm-app", "dependencie
 # --- Python ---
 $pySrc = Join-Path $TestRoot "py-lib"
 New-Item -ItemType Directory -Path $pySrc -Force | Out-Null
-Set-Content (Join-Path $pySrc "pyproject.toml") @"
-[project]
-name = "my_py_pkg"
-version = "0.1.0"
-"@
+Set-Content (Join-Path $pySrc "pyproject.toml") @('[project]', 'name = "my_py_pkg"', 'version = "0.1.0"')
 Set-Content (Join-Path $pySrc "core.py") 'def get_version(): return 1'
 
 $pyApp = Join-Path $TestRoot "py-app"
 $pySitePackages = Join-Path $pyApp ".venv/Lib/site-packages"
 New-Item -ItemType Directory -Path $pySitePackages -Force | Out-Null
-Set-Content (Join-Path $pyApp "pyproject.toml") '[project]\nname = "py-app"'
+Set-Content (Join-Path $pyApp "pyproject.toml") @('[project]', 'name = "py-app"')
 
 # --- Go ---
 $goSrc = Join-Path $TestRoot "go-lib"
 New-Item -ItemType Directory -Path $goSrc -Force | Out-Null
-Set-Content (Join-Path $goSrc "go.mod") "module example.com/tools/go-lib`n`ngo 1.21"
-Set-Content (Join-Path $goSrc "lib.go") "package golib`n`nconst Version = 1"
+Set-Content (Join-Path $goSrc "go.mod") @('module example.com/tools/go-lib', '', 'go 1.21')
+Set-Content (Join-Path $goSrc "lib.go") @('package golib', '', 'const Version = 1')
 
 $goApp = Join-Path $TestRoot "go-app"
 New-Item -ItemType Directory -Path (Join-Path $goApp "vendor") -Force | Out-Null
-Set-Content (Join-Path $goApp "go.mod") "module example.com/apps/go-app`n`ngo 1.21"
+Set-Content (Join-Path $goApp "go.mod") @('module example.com/apps/go-app', '', 'go 1.21')
 
 # --- Dart ---
 $dartSrc = Join-Path $TestRoot "dart-lib"
 New-Item -ItemType Directory -Path $dartSrc -Force | Out-Null
-Set-Content (Join-Path $dartSrc "pubspec.yaml") "name: my_dart_pkg`nversion: 1.0.0"
-Set-Content (Join-Path $dartSrc "main.dart") "int getVersion() => 1;"
+Set-Content (Join-Path $dartSrc "pubspec.yaml") @('name: my_dart_pkg', 'version: 1.0.0')
+Set-Content (Join-Path $dartSrc "main.dart") 'int getVersion() => 1;'
 
 $dartApp = Join-Path $TestRoot "dart-app"
 New-Item -ItemType Directory -Path (Join-Path $dartApp ".dart_tool/packages") -Force | Out-Null
-Set-Content (Join-Path $dartApp "pubspec.yaml") "name: dart_app`ndependencies:`n  my_dart_pkg: ^1.0.0"
+Set-Content (Join-Path $dartApp "pubspec.yaml") @('name: dart_app', 'dependencies:', '  my_dart_pkg: ^1.0.0')
 
 # --- PHP/Composer ---
 $phpSrc = Join-Path $TestRoot "php-lib"
@@ -82,14 +85,14 @@ Set-Content (Join-Path $phpApp "composer.json") '{"name": "acme/php-app"}'
 # --- Rust/Cargo ---
 $cargoSrc = Join-Path $TestRoot "cargo-lib"
 New-Item -ItemType Directory -Path $cargoSrc -Force | Out-Null
-Set-Content (Join-Path $cargoSrc "Cargo.toml") "[package]`nname = `"my-cargo-crate`"`nversion = `"0.1.0`"`nedition = `"2021`""
-Set-Content (Join-Path $cargoSrc "lib.rs") "pub fn ver() -> u32 { 1 }"
+Set-Content (Join-Path $cargoSrc "Cargo.toml") @('[package]', 'name = "my-cargo-crate"', 'version = "0.1.0"', 'edition = "2021"')
+Set-Content (Join-Path $cargoSrc "lib.rs") 'pub fn ver() -> u32 { 1 }'
 
 $cargoApp = Join-Path $TestRoot "cargo-app"
 New-Item -ItemType Directory -Path (Join-Path $cargoApp "vendor") -Force | Out-Null
-Set-Content (Join-Path $cargoApp "Cargo.toml") "[package]`nname = `"cargo-app`"`nversion = `"0.1.0`"`nedition = `"2021`""
+Set-Content (Join-Path $cargoApp "Cargo.toml") @('[package]', 'name = "cargo-app"', 'version = "0.1.0"', 'edition = "2021"')
 
-Write-Host "✓ All 6 ecosystem fixtures generated." -ForegroundColor Green
+Write-Host "[OK] All 6 ecosystem fixtures generated." -ForegroundColor Green
 
 # 3. Start daemon
 Write-Host "`n[2/6] Starting linkd daemon..." -ForegroundColor Yellow
@@ -100,7 +103,7 @@ $statusJson = & $LinkdExe status --json | ConvertFrom-Json
 if (-not $statusJson.daemon_running) {
     Write-Error "Daemon failed to report running status!"
 }
-Write-Host "✓ Daemon is running (PID: $($statusJson.pid))" -ForegroundColor Green
+Write-Host "[OK] Daemon is running (PID: $($statusJson.pid))" -ForegroundColor Green
 
 $daemonPid = $statusJson.pid
 $proc = Get-Process -Id $daemonPid -ErrorAction SilentlyContinue
@@ -151,7 +154,9 @@ foreach ($t in $targets) {
     for ($attempt = 0; $attempt -lt 20; $attempt++) {
         if (Test-Path $t.Path) {
             $c = Get-Content $t.Path -Raw
-            if ($c.Trim() -eq $t.Expected.Trim()) {
+            $cNorm = $c.Replace("`r`n", "`n").Trim()
+            $expNorm = $t.Expected.Replace("`r`n", "`n").Trim()
+            if ($cNorm -eq $expNorm) {
                 $synced = $true
                 break
             }
@@ -161,7 +166,7 @@ foreach ($t in $targets) {
     if (-not $synced) {
         Write-Error "Initial sync failed or content mismatch for $($t.Name) at $($t.Path)!"
     }
-    Write-Host "  ✓ $($t.Name) initial sync verified." -ForegroundColor Green
+    Write-Host "  [OK] $($t.Name) initial sync verified." -ForegroundColor Green
 }
 
 # 5. Measure Idle CPU and Memory over 6 seconds
@@ -194,9 +199,10 @@ Write-Host ("  Idle CPU Usage: Average = {0:N2}%, Max = {1:N2}%" -f $avgCpu, $ma
 Write-Host ("  Idle Memory (RSS): {0:N1} MB" -f $avgRss) -ForegroundColor Cyan
 
 if ($avgCpu -gt 2.0) {
-    Write-Warning "Average idle CPU usage ($avgCpu%) is higher than expected (< 1.5%)."
+    $warnMsg = 'Average idle CPU usage ({0:N2}%) is higher than expected (< 1.5%).' -f $avgCpu
+    Write-Warning $warnMsg
 } else {
-    Write-Host "  ✓ Idle CPU is extremely low and well-optimized (< 1.0% core usage)." -ForegroundColor Green
+    Write-Host "  [OK] Idle CPU is extremely low and well-optimized (< 1.0% core usage)." -ForegroundColor Green
 }
 
 # 6. Test Multi-Ecosystem Live Idle Sync (Edits, Additions, Deletions)
@@ -210,17 +216,17 @@ $pyUpdated = Get-Content $pyTarget -Raw
 if ($pyUpdated.Trim() -ne 'def get_version(): return 2 # updated live') {
     Write-Error "Python live sync failed! Content: $pyUpdated"
 }
-Write-Host "  ✓ Python live sync passed." -ForegroundColor Green
+Write-Host "  [OK] Python live sync passed." -ForegroundColor Green
 
 # Edit 2: Go edit
 Write-Host "  Modifying Go source (go-lib/lib.go)..." -ForegroundColor Gray
 Set-Content (Join-Path $goSrc "lib.go") "package golib`n`nconst Version = 2 // live"
 Start-Sleep -Milliseconds 1200
 $goUpdated = Get-Content $goTarget -Raw
-if ($goUpdated.Trim() -ne "package golib`n`nconst Version = 2 // live") {
+if ($goUpdated.Replace("`r`n", "`n").Trim() -ne "package golib`n`nconst Version = 2 // live") {
     Write-Error "Go live sync failed! Content: $goUpdated"
 }
-Write-Host "  ✓ Go live sync passed." -ForegroundColor Green
+Write-Host "  [OK] Go live sync passed." -ForegroundColor Green
 
 # Edit 3: Dart edit
 Write-Host "  Modifying Dart source (dart-lib/main.dart)..." -ForegroundColor Gray
@@ -230,7 +236,7 @@ $dartUpdated = Get-Content $dartTarget -Raw
 if ($dartUpdated.Trim() -ne "int getVersion() => 2; // live") {
     Write-Error "Dart live sync failed! Content: $dartUpdated"
 }
-Write-Host "  ✓ Dart live sync passed." -ForegroundColor Green
+Write-Host "  [OK] Dart live sync passed." -ForegroundColor Green
 
 # Edit 4: NPM edit & new file addition
 Write-Host "  Modifying NPM source and adding new file..." -ForegroundColor Gray
@@ -242,7 +248,7 @@ $npmHelperTarget = Join-Path $npmApp "node_modules/@test/npm-lib/helper.js"
 if ($npmUpdated.Trim() -ne 'module.exports = { name: "npm-lib", v: 2 };' -or (-not (Test-Path $npmHelperTarget))) {
     Write-Error "NPM live sync / file addition failed!"
 }
-Write-Host "  ✓ NPM live sync & new file addition passed." -ForegroundColor Green
+Write-Host "  [OK] NPM live sync & new file addition passed." -ForegroundColor Green
 
 # Edit 5: PHP file deletion
 Write-Host "  Testing file deletion in PHP..." -ForegroundColor Gray
@@ -257,7 +263,42 @@ Start-Sleep -Milliseconds 1200
 if (Test-Path $phpExtraTarget) {
     Write-Error "PHP file deletion was not reflected in sync target!"
 }
-Write-Host "  ✓ PHP file deletion live cleanup passed." -ForegroundColor Green
+Write-Host "  [OK] PHP file deletion live cleanup passed." -ForegroundColor Green
+
+# Edit 5-b: Directory deletion cleanup test
+Write-Host "  Testing nested directory deletion cleanup in NPM..." -ForegroundColor Gray
+$nestedDir = Join-Path $npmSrc "utils/math"
+New-Item -ItemType Directory -Path $nestedDir -Force | Out-Null
+Set-Content (Join-Path $nestedDir "calc.js") 'module.exports = 123;'
+
+$nestedTarget = Join-Path $npmApp "node_modules/@test/npm-lib/utils/math/calc.js"
+$dirSynced = $false
+for ($attempt = 0; $attempt -lt 15; $attempt++) {
+    if (Test-Path $nestedTarget) {
+        $dirSynced = $true
+        break
+    }
+    Start-Sleep -Milliseconds 250
+}
+if (-not $dirSynced) {
+    Write-Error "Nested dir file failed to sync initially"
+}
+
+Remove-Item -Recurse -Force (Join-Path $npmSrc "utils")
+
+$nestedTargetDir = Join-Path $npmApp "node_modules/@test/npm-lib/utils"
+$dirPruned = $false
+for ($attempt = 0; $attempt -lt 15; $attempt++) {
+    if (-not (Test-Path $nestedTargetDir)) {
+        $dirPruned = $true
+        break
+    }
+    Start-Sleep -Milliseconds 250
+}
+if (-not $dirPruned) {
+    Write-Error "Empty parent directory was not pruned after directory deletion!"
+}
+Write-Host "  [OK] Nested directory deletion and empty folder pruning passed." -ForegroundColor Green
 
 # Edit 6: Rust/Cargo live edit
 Write-Host "  Modifying Cargo source (cargo-lib/lib.rs)..." -ForegroundColor Gray
@@ -267,7 +308,7 @@ $cargoUpdated = Get-Content $cargoTarget -Raw
 if ($cargoUpdated.Trim() -ne "pub fn ver() -> u32 { 2 }") {
     Write-Error "Cargo live sync failed! Content: $cargoUpdated"
 }
-Write-Host "  ✓ Cargo live sync passed." -ForegroundColor Green
+Write-Host "  [OK] Cargo live sync passed." -ForegroundColor Green
 
 # 7. Stop daemon and cleanup
 Write-Host "`n[6/6] Stopping daemon and checking clean termination..." -ForegroundColor Yellow
@@ -278,7 +319,7 @@ $stoppedProc = Get-Process -Id $daemonPid -ErrorAction SilentlyContinue
 if ($null -ne $stoppedProc) {
     Write-Error "Daemon process $daemonPid is still running after stop!"
 }
-Write-Host "✓ Daemon stopped cleanly." -ForegroundColor Green
+Write-Host "[OK] Daemon stopped cleanly." -ForegroundColor Green
 
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " ALL REAL-WORLD TESTS & RESOURCE CHECKS PASSED!" -ForegroundColor Green

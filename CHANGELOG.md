@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-09-02
+
+### 🚀 Major Enhancement Release (v0.2.0)
+
+- **Recursive Empty Directory Cleanup (`SyncEngine`)**:
+  - Implemented bottom-up empty directory pruning in [`SyncEngine`](crates/linkd-sync/src/engine.rs) after stale file deletions.
+  - When directories or nested modules are deleted from source packages, all emptied intermediate and leaf directories are recursively removed from the sync target.
+  - Added unit test `incremental_sync_removes_empty_directories` and integration test `file_deletion_sync_removes_stale_target_files`.
+
+- **Daemon Resilience & Stale PID Auto-Purging**:
+  - Enhanced `is_daemon_running()` in `linkd-daemon` to automatically purge stale PID files from disk when a daemon crashes or is terminated forcefully (`kill -9`).
+  - Improved `linkd status` reporting to clearly differentiate between:
+    - Inactive / dead daemons: `Daemon: not running` with guidance to start the daemon.
+    - Live unresponsive processes: `Daemon: not responding (pid <pid>, IPC unreachable)` with diagnostic hints.
+
+- **Package Manager Detection Sanitization**:
+  - Normalized package manager detection for NPM packages without lockfiles to default to `"npm"` rather than emitting transient `"unknown"`.
+
+- **Test Suite Hardening**:
+  - Added end-to-end multi-ecosystem integration tests covering directory cleanup and lifecycle recovery across 6 ecosystems.
+
+---
+
 ## [0.1.6] - 2026-09-01
 
 ### 🚀 Public Release (v0.1.6)
@@ -221,6 +244,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[0.2.0]: https://github.com/pinoox/linkd/releases/tag/v0.2.0
 [0.1.6]: https://github.com/pinoox/linkd/releases/tag/v0.1.6
 [0.1.5]: https://github.com/pinoox/linkd/releases/tag/v0.1.5
 [0.1.4]: https://github.com/pinoox/linkd/releases/tag/v0.1.4

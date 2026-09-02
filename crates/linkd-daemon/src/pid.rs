@@ -26,6 +26,7 @@ pub fn is_linkd_process(pid: u32) -> bool {
 }
 
 pub fn is_daemon_running() -> bool {
+    let _ = cleanup_stale_pid();
     match DaemonPidFile::load() {
         Ok(Some(pid_file)) => is_linkd_process(pid_file.pid),
         _ => false,

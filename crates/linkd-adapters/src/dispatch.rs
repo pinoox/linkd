@@ -130,9 +130,14 @@ pub fn resolve_link(
     };
 
     let detected_pm = match eco {
-        Ecosystem::Npm => Some(
-            format!("{:?}", linkd_adapters_npm::detect_package_manager(consumer)).to_lowercase(),
-        ),
+        Ecosystem::Npm => {
+            let pm = linkd_adapters_npm::detect_package_manager(consumer);
+            if pm == linkd_adapters_npm::PackageManager::Unknown {
+                Some("npm".into())
+            } else {
+                Some(format!("{pm:?}").to_lowercase())
+            }
+        }
         Ecosystem::Composer => Some("composer".into()),
         Ecosystem::Python => Some("uv/pip".into()),
         Ecosystem::Go => Some("go".into()),

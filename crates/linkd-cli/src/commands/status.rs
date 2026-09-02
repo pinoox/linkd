@@ -40,30 +40,38 @@ pub async fn run(json: bool) -> anyhow::Result<()> {
     }
 
     let reg = RegistryStore::default().load()?;
+    let running = is_daemon_running();
     if json {
         println!(
             "{}",
             serde_json::to_string_pretty(&serde_json::json!({
-                "daemon_running": is_daemon_running(),
+                "daemon_running": running,
+                "ipc_connected": false,
                 "pid": pid_info.as_ref().map(|p| p.pid),
                 "links": reg.links,
             }))?
         );
-    } else {
-        println!(
-            "Daemon: {}",
-            if is_daemon_running() {
-                "running (IPC unreachable)"
-            } else {
-                "not running"
-            }
-        );
+    } else if let Some(pid) = pid_info {
+        println!("Daemon: not responding (pid {}, IPC unreachable)", pid.pid);
+        println!("  Warning: Process exists but is not responding to IPC.");
+        println!("  Run `linkd stop` or restart with `linkd start`.");
         for link in reg.links {
             println!(
-                "- {} → {} [{:?}] (registry only)",
+                "- {} → {} [{:?}] (unresponsive)",
                 link.package_name,
                 linkd_core::display_path(&link.consumer_root),
-                link.last_sync_status
+                link.ecosystem
+            );
+        }
+    } else {
+        println!("Daemon: not running");
+        println!("  Live sync is inactive. Run `linkd start` or `linkd use <package>` to start the daemon.");
+        for link in reg.links {
+            println!(
+                "- {} → {} [{:?}] (inactive)",
+                link.package_name,
+                linkd_core::display_path(&link.consumer_root),
+                link.ecosystem
             );
         }
     }

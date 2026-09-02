@@ -56,7 +56,7 @@ fn daemon_running_check_identifies_current_process() -> LinkdResult<()> {
     // Without PID file, daemon is not running
     assert!(!is_daemon_running());
 
-    // With a non-linkd PID, is_daemon_running returns false
+    // With a non-linkd PID, is_daemon_running returns false and removes stale PID file
     DaemonPidFile {
         pid: 999_999,
         started_at: "2026-01-01T00:00:00Z".into(),
@@ -64,6 +64,7 @@ fn daemon_running_check_identifies_current_process() -> LinkdResult<()> {
     }
     .save()?;
     assert!(!is_daemon_running());
+    assert!(DaemonPidFile::load()?.is_none());
 
     std::env::remove_var("LINKD_HOME");
     Ok(())
