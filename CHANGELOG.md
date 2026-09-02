@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.1] - 2026-09-02
+
+### 🚀 Self-Healing Target Recovery Release (v0.2.1)
+
+- **Self-Healing Link Target Recovery (`DaemonService`)**:
+  - Solved the edge case where manual deletion of target package directories (e.g. `rm -rf node_modules/<pkg>`) left links broken until a source file was edited.
+  - Implemented a **Dual-Layer Health Gate**:
+    - **Reactive Fast-Gate (300ms)**: Watcher now detects events targeting `sync_target` and triggers reconciliation *strictly* when target or `.linkd-marker.json` is missing or damaged, completely bypassing normal daemon write events to prevent infinite sync loops.
+    - **Level-Triggered Heartbeat (2s)**: Periodic health verification ensures all active links maintain intact target directories and markers, guaranteeing self-healing consistency even if filesystem events are coalesced or dropped by the OS.
+  - Added integration test [`target_deletion_healing`](tests/integration/target_deletion_healing.rs) verifying automatic restoration of deleted package targets under 1 second without infinite loops or CPU spikes.
+
+---
+
 ## [0.2.0] - 2026-09-02
 
 ### 🚀 Major Enhancement Release (v0.2.0)

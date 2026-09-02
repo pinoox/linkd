@@ -107,6 +107,10 @@ path = "incremental_sync.rs"
 name = "live_idle_sync"
 path = "live_idle_sync.rs"
 
+[[test]]
+name = "target_deletion_healing"
+path = "target_deletion_healing.rs"
+
 
 
 
